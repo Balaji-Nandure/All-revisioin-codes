@@ -1,0 +1,185 @@
+/*
+    Approach Used:
+    --------------
+    - This code implements a Stack data structure using a singly linked list.
+    - The stack supports standard operations: push, pop, top (peek), isEmpty, and getSize.
+    - The top of the stack is maintained at the head of the linked list for O(1) push and pop operations.
+
+    Why Linked List for Stack?
+    --------------------------
+    - Dynamic size: No need to predefine capacity (unlike array).
+    - Efficient O(1) insertion and deletion at the head.
+
+    Better Alternatives:
+    --------------------
+    1. **Array-based Stack**:
+        - Use a fixed-size array and a top index.
+        - Fast, but size is fixed or needs resizing logic.
+        - See code below.
+
+        /*
+        class StackArray {
+            int* arr;
+            int top;
+            int capacity;
+        public:
+            StackArray(int size) {
+                arr = new int[size];
+                capacity = size;
+                top = -1;
+            }
+            void push(int data) {
+                if(top == capacity-1) {
+                    cout << "Stack Overflow\n";
+                    return;
+                }
+                arr[++top] = data;
+            }
+            void pop() {
+                if(top == -1) {
+                    cout << "Stack Underflow\n";
+                    return;
+                }
+                top--;
+            }
+            int peek() {
+                if(top == -1) return -1;
+                return arr[top];
+            }
+            bool isEmpty() { return top == -1; }
+        };
+        */
+
+    2. **Using STL stack**:
+        - Use `std::stack<int>` from `<stack>` header.
+        - Handles all memory and resizing internally.
+        - Example:
+            /*
+            #include<stack>
+            stack<int> st;
+            st.push(10);
+            st.pop();
+            int t = st.top();
+            */
+
+    3. **Doubly Linked List**:
+        - Not needed for stack, as only head operations are required.
+
+    Dry Run:
+    --------
+    - Push 10, 20, 30
+    - Stack: 30 (top) -> 20 -> 10
+    - Pop: removes 30, new top is 20
+    - Top: returns 20
+    - isEmpty: false
+    - Pop all: stack becomes empty, isEmpty: true
+
+    ----------------------------------------------------------
+*/
+
+// Stack implementation using singly linked list
+#include <iostream>
+using namespace std;
+
+// Node class for linked list
+class Node {
+public:
+    int data;       // Data stored in node
+    Node* next;     // Pointer to next node
+
+    Node(int data) {
+        this->data = data; // Initialize node data
+        this->next = nullptr; // Next is null by default
+    }
+};
+
+// Stack class using linked list
+class Stack {
+    Node* head;     // Points to the top of the stack
+    int size;       // Tracks number of elements in stack
+
+public:
+    Stack() {
+        head = nullptr; // Stack is initially empty
+        size = 0;       // Size is 0
+    }
+
+    // Pushes an element onto the stack
+    void push(int data) {
+        Node* newNode = new Node(data); // Create new node
+        newNode->next = head;           // New node points to current head
+        head = newNode;                 // Head moves to new node (top of stack)
+        size++;                         // Increment size
+        // cout << "Pushed " << data << " onto stack\n";
+    }
+
+    // Removes the top element from the stack
+    void pop() {
+        if (isEmpty()) {                // If stack is empty
+            cout << "Stack Underflow\n";
+            return;
+        }
+        Node* temp = head;              // Store current head
+        head = head->next;              // Move head to next node
+        delete temp;                    // Delete old head
+        size--;                         // Decrement size
+        // cout << "Popped from stack\n";
+    }
+
+    // Returns the top element of the stack
+    int top() {
+        if (isEmpty()) {                // If stack is empty
+            cout << "Stack is empty\n";
+            return -1;                  // Return sentinel value
+        }
+        return head->data;              // Return data at head
+    }
+
+    // Checks if the stack is empty
+    bool isEmpty() {
+        return head == nullptr;         // True if head is null
+    }
+
+    // Returns the number of elements in the stack
+    int getSize() {
+        return size;
+    }
+};
+
+// Example usage and dry run
+int main() {
+    Stack st;
+    st.push(10);    // Stack: 10
+    st.push(20);    // Stack: 20(top) -> 10
+    st.push(30);    // Stack: 30(top) -> 20 -> 10
+
+    cout << "Top: " << st.top() << endl;   // Output: 30
+    st.pop();                              // Removes 30
+    cout << "Top after pop: " << st.top() << endl; // Output: 20
+
+    cout << "Stack size: " << st.getSize() << endl; // Output: 2
+
+    st.pop();      // Removes 20
+    st.pop();      // Removes 10
+    st.pop();      // Underflow, stack is empty
+
+    cout << "Is stack empty? " << (st.isEmpty() ? "Yes" : "No") << endl; // Output: Yes
+
+    return 0;
+}
+
+/*
+Dry Run:
+--------
+st.push(10)   // Stack: 10
+st.push(20)   // Stack: 20(top) -> 10
+st.push(30)   // Stack: 30(top) -> 20 -> 10
+st.top()      // Returns 30
+st.pop()      // Removes 30, Stack: 20(top) -> 10
+st.top()      // Returns 20
+st.getSize()  // Returns 2
+st.pop()      // Removes 20, Stack: 10
+st.pop()      // Removes 10, Stack: empty
+st.pop()      // Underflow, prints "Stack Underflow"
+isEmpty()     // Returns true
+*/

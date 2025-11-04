@@ -1,0 +1,121 @@
+/*
+Approach Used:
+--------------
+This file lists the homework questions based on recursion concepts covered in class. Each problem focuses on a classic recursion pattern and is fundamental for mastering recursion in DSA.
+
+1) Revise the questions done in class today:
+   a) Binary Search (Recursive)
+      - Approach: Use recursion to divide the search space in half at each step.
+      - Key Logic: 
+        * Calculate mid index.
+        * If target found at mid, return index.
+        * If target < arr[mid], search left half.
+        * If target > arr[mid], search right half.
+        * Base case: start > end (target not found).
+      - Code Example:
+        ```
+        int binarySearch(const vector<int>& arr, int start, int end, int target) {
+            // Base Case: If search range is invalid, target not found
+            if(start > end) return -1;
+            int mid = start + (end - start) / 2; // Prevents overflow
+            if(arr[mid] == target) return mid;   // Target found
+            else if(arr[mid] > target)
+                return binarySearch(arr, start, mid-1, target); // Search left
+            else
+                return binarySearch(arr, mid+1, end, target);   // Search right
+        }
+        ```
+      - Better Alternatives:
+        * Iterative Binary Search (avoids recursion stack).
+        * Using STL: std::binary_search, std::lower_bound.
+
+   b) Subsequences of String (Power Set)
+      - Approach: At each character, recursively decide to include or exclude it in the current subsequence.
+      - Key Logic:
+        * Base case: If index == str.length(), print current output.
+        * Recursive case: 
+            - Exclude current char and recurse.
+            - Include current char and recurse.
+      - Code Example:
+        ```
+        void printSubsequences(string str, string output, int i) {
+            if(i == str.length()) {
+                cout << output << endl; // Print current subsequence
+                return;
+            }
+            printSubsequences(str, output, i+1); // Exclude current char
+            printSubsequences(str, output + str[i], i+1); // Include current char
+        }
+        ```
+      - Better Alternatives:
+        * Iterative bitmasking for power set generation (for small strings).
+        * Using STL: std::bitset, std::vector.
+
+   c) Array is Sorted or Not (Recursive)
+      - Approach: Recursively check if each element is less than or equal to the next.
+      - Key Logic:
+        * Base case: If at last element, array is sorted.
+        * If arr[i] > arr[i+1], array is not sorted.
+        * Otherwise, check next pair.
+      - Code Example:
+        ```
+        bool isSorted(const int arr[], int i, int size) {
+            if(i == size-1) return true; // Last element reached
+            if(arr[i] > arr[i+1]) return false; // Not sorted
+            return isSorted(arr, i+1, size); // Check next
+        }
+        ```
+      - Better Alternatives:
+        * Iterative check using a loop.
+        * STL: std::is_sorted.
+
+2) Try Phone Keypad Problem (Recursion)
+   - Approach: For each digit, try all possible characters mapped to that digit, recursively build all combinations.
+   - Key Logic:
+     * Base case: If index == input.length(), print current output.
+     * For each character mapped to current digit, append to output and recurse for next digit.
+   - Code Example:
+     ```
+     void phoneKeypad(string digits, string output, int i, const vector<string>& mapping) {
+         if(i == digits.length()) {
+             cout << output << endl; // Print combination
+             return;
+         }
+         int digit = digits[i] - '0';
+         for(char ch : mapping[digit]) {
+             phoneKeypad(digits, output + ch, i+1, mapping); // Try each char
+         }
+     }
+     // mapping = {"", "", "abc", "def", ...}
+     ```
+   - Better Alternatives:
+     * Iterative BFS for large input.
+     * Using queue for level-wise generation.
+
+----------------------------------------------------------
+Dry Run Example (for Binary Search):
+------------------------------------
+arr = [1, 3, 5, 7, 9], target = 7
+Call: binarySearch(arr, 0, 4, 7)
+- mid = 2, arr[2]=5 < 7, search right half
+- Call: binarySearch(arr, 3, 4, 7)
+  - mid = 3, arr[3]=7 == 7, found at index 3
+
+Dry Run Example (for Subsequences):
+-----------------------------------
+str = "ab"
+Call: printSubsequences("ab", "", 0)
+- Exclude 'a': printSubsequences("ab", "", 1)
+  - Exclude 'b': printSubsequences("ab", "", 2) => prints ""
+  - Include 'b': printSubsequences("ab", "b", 2) => prints "b"
+- Include 'a': printSubsequences("ab", "a", 1)
+  - Exclude 'b': printSubsequences("ab", "a", 2) => prints "a"
+  - Include 'b': printSubsequences("ab", "ab", 2) => prints "ab"
+
+Dry Run Example (for Array Sorted):
+-----------------------------------
+arr = [1, 2, 3]
+Call: isSorted(arr, 0, 3)
+- arr[0]=1 <= arr[1]=2, check next
+- arr[1]=2 <= arr[2]=3, check next
+- i==2 (last element), return true

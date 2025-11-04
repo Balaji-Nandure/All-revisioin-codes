@@ -1,0 +1,16 @@
+1) In search in rotated sorted array can we compare the arr[mid] element with end element. If yes then find the condition?
+
+Answer:
+Yes, we can compare arr[mid] with arr[end] (where end is the right boundary of the current search space) to determine which half of the array is sorted and where to continue the search.
+
+Condition:
+- If arr[mid] <= arr[end], then the right half (from mid to end) is sorted.
+    - If the target lies within arr[mid] and arr[end], search in the right half (mid+1 to end).
+    - Otherwise, search in the left half (start to mid-1).
+- If arr[mid] > arr[end], then the left half (from start to mid) is sorted or contains the pivot.
+    - If the target lies within arr[start] and arr[mid], search in the left half (start to mid-1).
+    - Otherwise, search in the right half (mid+1 to end).
+
+This approach is an alternative to comparing arr[mid] with arr[start].
+
+Example code snippet:

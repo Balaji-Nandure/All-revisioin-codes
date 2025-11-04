@@ -1,0 +1,146 @@
+
+/*
+--------------------------------------------------------------------------------
+1) Minimum Coin Change Problem - Alternative Solution
+--------------------------------------------------------------------------------
+
+Approach Used:
+---------------
+We use Dynamic Programming (Bottom-Up Tabulation) to solve the minimum coin change problem.
+Given a set of coin denominations and a target amount, we want to find the minimum number of coins needed to make up that amount.
+
+Logic:
+------
+- We create a dp array where dp[i] represents the minimum coins needed for amount i.
+- Initialize dp[0] = 0 (0 coins needed for amount 0), and all other dp[i] = INT_MAX (infinity).
+- For each amount from 1 to target, for each coin, if coin <= amount, update dp[amount] = min(dp[amount], 1 + dp[amount - coin]).
+- At the end, if dp[target] is still INT_MAX, it means it's not possible to make that amount.
+
+Better Alternatives:
+--------------------
+- Recursive solution with memoization (Top-Down DP).
+- Greedy approach (works only for some coin systems, not all).
+- BFS approach (treating each amount as a node).
+
+Code:
+*/
+
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+// Function to compute minimum coins needed for given amount
+int minCoins(vector<int>& coins, int amount) {
+    vector<int> dp(amount + 1, INT_MAX); // dp[i] = min coins for amount i
+    dp[0] = 0; // Base case: 0 coins for amount 0
+
+    // For each amount from 1 to amount
+    for (int i = 1; i <= amount; ++i) {
+        // Try every coin
+        for (int coin : coins) {
+            if (i - coin >= 0 && dp[i - coin] != INT_MAX) {
+                // If it's possible to make (i - coin), update dp[i]
+                dp[i] = min(dp[i], 1 + dp[i - coin]);
+            }
+        }
+    }
+    // If dp[amount] is still INT_MAX, not possible to make amount
+    return dp[amount] == INT_MAX ? -1 : dp[amount];
+}
+
+/*
+Alternative: Recursive + Memoization (Top-Down)
+------------------------------------------------
+int solve(vector<int>& coins, int amount, vector<int>& memo) {
+    if (amount == 0) return 0;
+    if (amount < 0) return INT_MAX;
+    if (memo[amount] != -1) return memo[amount];
+    int res = INT_MAX;
+    for (int coin : coins) {
+        int sub = solve(coins, amount - coin, memo);
+        if (sub != INT_MAX)
+            res = min(res, 1 + sub);
+    }
+    return memo[amount] = res;
+}
+*/
+
+// Dry Run Example:
+// coins = [1, 2, 5], amount = 11
+// dp[0] = 0
+// dp[1] = 1 (1x1)
+// dp[2] = 1 (1x2)
+// dp[3] = 2 (1x2 + 1x1)
+// dp[4] = 2 (2x2)
+// dp[5] = 1 (1x5)
+// dp[6] = 2 (1x5 + 1x1)
+// ...
+// dp[11] = 3 (5+5+1)
+
+/*
+--------------------------------------------------------------------------------
+2) House Robbery - 1 (Maximum Sum of Non-Adjacent Elements)
+--------------------------------------------------------------------------------
+
+Approach Used:
+---------------
+We use Dynamic Programming (Bottom-Up Tabulation) to solve the House Robber problem.
+Given an array of non-negative integers representing the amount of money of each house, 
+find the maximum amount of money you can rob tonight without alerting the police (cannot rob two adjacent houses).
+
+Logic:
+------
+- Create a dp array where dp[i] represents the maximum money that can be robbed from the first i houses.
+- For each house, you have two choices:
+    1. Rob this house: Add its value to dp[i-2] (since you can't rob adjacent).
+    2. Don't rob this house: Take dp[i-1].
+- dp[i] = max(dp[i-1], nums[i] + dp[i-2])
+- Base cases: dp[0] = nums[0], dp[1] = max(nums[0], nums[1])
+
+Better Alternatives:
+--------------------
+- Space optimized DP (use two variables instead of dp array).
+- Recursive + Memoization (Top-Down).
+
+Code:
+*/
+
+int rob(vector<int>& nums) {
+    int n = nums.size();
+    if (n == 0) return 0; // No houses
+    if (n == 1) return nums[0]; // Only one house
+
+    vector<int> dp(n, 0); // dp[i] = max money till house i
+    dp[0] = nums[0]; // Rob first house
+    dp[1] = max(nums[0], nums[1]); // Rob max of first or second house
+
+    for (int i = 2; i < n; ++i) {
+        // For each house, decide to rob or not
+        dp[i] = max(dp[i-1], nums[i] + dp[i-2]);
+    }
+    return dp[n-1]; // Max money till last house
+}
+
+/*
+Alternative: Space Optimized
+----------------------------
+int rob(vector<int>& nums) {
+    int prev2 = 0, prev1 = 0;
+    for (int num : nums) {
+        int temp = prev1;
+        prev1 = max(prev1, prev2 + num);
+        prev2 = temp;
+    }
+    return prev1;
+}
+*/
+
+// Dry Run Example:
+// nums = [2,7,9,3,1]
+// dp[0] = 2
+// dp[1] = max(2,7) = 7
+// dp[2] = max(7,2+9)=11
+// dp[3] = max(11,7+3)=11
+// dp[4] = max(11,11+1)=12
+// Answer: 12

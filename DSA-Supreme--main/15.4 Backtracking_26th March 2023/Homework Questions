@@ -1,0 +1,183 @@
+## /\*
+
+1. Sudoku Solver (Backtracking Approach)
+
+---
+
+Approach Used:
+
+- The Sudoku Solver uses backtracking to fill a 9x9 board so that every row, column, and 3x3 subgrid contains the digits 1-9 exactly once.
+- The algorithm tries to fill empty cells ('.') with digits from '1' to '9'.
+- For each empty cell, it checks if placing a digit is safe (i.e., doesn't violate Sudoku rules).
+- If safe, it places the digit and recursively attempts to solve the rest of the board.
+- If a dead end is reached, it backtracks (removes the digit) and tries the next possibility.
+
+Key Steps:
+
+1. Find the next empty cell.
+2. Try all possible digits ('1' to '9') in that cell.
+3. For each digit, check if it's safe to place.
+4. If safe, place the digit and recursively solve the rest.
+5. If the board is solved, return true.
+6. If not, backtrack and try the next digit.
+7. If no digit fits, return false (triggering backtracking).
+
+---
+
+## Better/Alternative Approaches:
+
+1. **Bitmasking for Fast Validity Checks:**
+
+   - Use bitmasks to track used digits in rows, columns, and boxes for O(1) checks.
+   - This reduces the time for checking if a digit can be placed.
+
+   Example (Pseudo-code):
+
+   ```
+   // Use 3 arrays of 9 integers for rows, cols, boxes
+   int rows[9] = {0}, cols[9] = {0}, boxes[9] = {0};
+   // To set/check digit d at (i,j):
+   int mask = 1 << (d-1);
+   if (!(rows[i] & mask) && !(cols[j] & mask) && !(boxes[boxIndex] & mask)) {
+       // Place digit
+       rows[i] |= mask; cols[j] |= mask; boxes[boxIndex] |= mask;
+       // ...recurse...
+       // Backtrack
+       rows[i] ^= mask; cols[j] ^= mask; boxes[boxIndex] ^= mask;
+   }
+   ```
+
+2. **Constraint Propagation (with Forward Checking):**
+
+   - Maintain a set of possible values for each cell.
+   - When a value is placed, update possible values for related cells.
+   - If any cell has no possible values, backtrack immediately.
+
+3. **Dancing Links (Algorithm X):**
+   - Advanced technique for exact cover problems (used in fastest Sudoku solvers).
+   - Not shown here due to complexity.
+
+---
+
+## Code with Detailed Comments
+
+\*/
+
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Function to check if placing 'value' at (curr_row, curr_col) is safe
+bool isSafe(char value, vector<vector<char>>& board, int curr_row, int curr_col) {
+// Check if 'value' is present in the current row
+for (int col = 0; col < 9; col++) {
+if (board[curr_row][col] == value)
+return false; // Not safe
+}
+// Check if 'value' is present in the current column
+for (int row = 0; row < 9; row++) {
+if (board[row][curr_col] == value)
+return false; // Not safe
+}
+// Check if 'value' is present in the 3x3 subgrid
+for (int i = 0; i < 9; i++) {
+int boxRow = 3 _ (curr_row / 3) + (i / 3);
+int boxCol = 3 _ (curr_col / 3) + (i % 3);
+if (board[boxRow][boxCol] == value)
+return false; // Not safe
+}
+return true; // Safe to place
+}
+
+// Recursive function to solve the Sudoku board using backtracking
+bool solveSudoku(vector<vector<char>>& board) {
+int n = board.size(); // Number of rows (should be 9)
+for (int i = 0; i < n; i++) { // Traverse each row
+for (int j = 0; j < n; j++) { // Traverse each column
+if (board[i][j] == '.') { // If cell is empty
+for (char value = '1'; value <= '9'; value++) { // Try all digits
+if (isSafe(value, board, i, j)) { // Check if safe to place
+board[i][j] = value; // Place the digit
+if (solveSudoku(board)) // Recursively solve for next cells
+return true; // If solved, return true
+board[i][j] = '.'; // Backtrack if not solved
+}
+}
+return false; // No valid digit found, trigger backtracking
+}
+}
+}
+return true; // All cells filled, board solved
+}
+
+// Utility function to print the Sudoku board
+void printBoard(const vector<vector<char>>& board) {
+for (int i = 0; i < 9; i++) {
+for (int j = 0; j < 9; j++) {
+cout << board[i][j] << " ";
+}
+cout << endl;
+}
+}
+
+// Example usage and dry run
+int main() {
+// Example Sudoku board ('.' denotes empty cells)
+vector<vector<char>> board = {
+{'5','3','.','.','7','.','.','.','.'},
+{'6','.','.','1','9','5','.','.','.'},
+{'.','9','8','.','.','.','.','6','.'},
+{'8','.','.','.','6','.','.','.','3'},
+{'4','.','.','8','.','3','.','.','1'},
+{'7','.','.','.','2','.','.','.','6'},
+{'.','6','.','.','.','.','2','8','.'},
+{'.','.','.','4','1','9','.','.','5'},
+{'.','.','.','.','8','.','.','7','9'}
+};
+
+    cout << "Original Sudoku Board:" << endl;
+    printBoard(board);
+
+    if (solveSudoku(board)) {
+        cout << "\nSolved Sudoku Board:" << endl;
+        printBoard(board);
+    } else {
+        cout << "No solution exists for the given Sudoku board." << endl;
+    }
+
+    return 0;
+
+}
+
+## /\*
+
+Dry Run Example (Partial, for first few steps):
+
+Original Board:
+5 3 . . 7 . . . .
+6 . . 1 9 5 . . .
+. 9 8 . . . . 6 .
+8 . . . 6 . . . 3
+4 . . 8 . 3 . . 1
+7 . . . 2 . . . 6
+. 6 . . . . 2 8 .
+. . . 4 1 9 . . 5
+. . . . 8 . . 7 9
+
+Step 1: First empty cell at (0,2). Try '1'...'9'.
+
+- '1' is safe, place '1' at (0,2).
+- Recurse to next empty cell.
+- If dead end, backtrack and try next digit.
+
+Step 2: Continue filling next empty cells recursively.
+
+Step 3: If a cell cannot be filled with any digit, backtrack to previous cell and try next digit.
+
+Step 4: Continue until all cells are filled.
+
+Final: If all cells are filled and constraints are satisfied, print the solved board.
+
+---
+
+\*/

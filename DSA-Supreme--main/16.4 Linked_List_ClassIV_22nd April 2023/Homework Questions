@@ -1,0 +1,85 @@
+/*
+    Remove Duplicates from Unsorted Linked List
+
+    Approach Used:
+    --------------
+    - Use a hash set (unordered_set) to track values seen so far.
+    - Traverse the list, for each node:
+        * If its value has been seen, remove the node.
+        * Otherwise, add value to the set and continue.
+    - Time: O(N), Space: O(N)
+*/
+
+#include <iostream>
+#include <unordered_set>
+using namespace std;
+
+// Node class for singly linked list
+class Node {
+public:
+    int data;
+    Node* next;
+
+    Node(int data) {
+        this->data = data;
+        this->next = NULL;
+    }
+};
+
+// Utility function to print the linked list
+void printList(Node* head) {
+    Node* temp = head;
+    while (temp != NULL) {
+        cout << temp->data << " ";
+        temp = temp->next;
+    }
+    cout << endl;
+}
+
+// Function to remove duplicates from unsorted linked list
+void removeDuplicatesUnsorted(Node* &head) {
+    if (head == NULL || head->next == NULL) return; // 0/1 node, nothing to do
+
+    unordered_set<int> seen;
+    Node *curr = head;
+    Node *prev = NULL;
+
+    while (curr != NULL) {
+        if (seen.count(curr->data)) {
+            // Duplicate found: remove node
+            prev->next = curr->next;
+            Node* toDelete = curr;
+            curr = curr->next;
+            delete toDelete;
+        } else {
+            seen.insert(curr->data);
+            prev = curr;
+            curr = curr->next;
+        }
+    }
+}
+
+// Sample usage (main function)
+/*
+int main() {
+    // Create list: 10->12->11->11->12->11->10
+    Node* head = new Node(10);
+    head->next = new Node(12);
+    head->next->next = new Node(11);
+    head->next->next->next = new Node(11);
+    head->next->next->next->next = new Node(12);
+    head->next->next->next->next->next = new Node(11);
+    head->next->next->next->next->next->next = new Node(10);
+
+    cout << "Original List: ";
+    printList(head);
+
+    removeDuplicatesUnsorted(head);
+
+    cout << "List after removing duplicates: ";
+    printList(head);
+
+    // Free memory...
+}
+*/
+

@@ -1,0 +1,137 @@
+/*
+Approach 1: Print all elements of array using recursion (forward order)
+- The function prints the first element, then recursively prints the rest.
+- Base case: If size is 0, stop recursion.
+- Processing: Print the first element.
+- Recursive call: Move pointer to next element, reduce size by 1.
+- Time Complexity: O(n)
+- Space Complexity: O(n) (due to recursion stack)
+*/
+
+void printArrayElements(int arr[], int size) {
+    // Base Case: If array size is 0, nothing to print
+    if (size == 0)
+        return;
+    // Print the first element of the current array
+    cout << arr[0] << " ";
+    // Recursive call: Move to next element, decrease size
+    printArrayElements(arr + 1, size - 1);
+}
+
+/*
+Alternative Approach 1 (using index instead of pointer arithmetic):
+This avoids pointer arithmetic and is often clearer.
+*/
+void printArrayElementsAlt(int arr[], int index, int size) {
+    // Base Case: If index reaches size, stop
+    if (index == size)
+        return;
+    // Print current element
+    cout << arr[index] << " ";
+    // Recursive call: Move to next index
+    printArrayElementsAlt(arr, index + 1, size);
+}
+
+/*
+Approach 2: Print all elements of array in reverse order using recursion
+- The function first recursively goes to the end, then prints elements on the way back.
+- Base case: If index reaches size, stop recursion.
+- Recursive call: Move to next index.
+- Processing: Print current element after recursive call (reverse order).
+- Time Complexity: O(n)
+- Space Complexity: O(n) (due to recursion stack)
+*/
+
+void printArrayElementsReverse(int arr[], int i, int size) {
+    // Base Case: If index reaches size, stop
+    if (i == size)
+        return;
+    // Recursive call: Go to next index first
+    printArrayElementsReverse(arr, i + 1, size);
+    // Print current element after recursion (reverse order)
+    cout << arr[i] << " ";
+}
+
+/*
+Alternative Approach 2 (using size as parameter, no index):
+This version uses only size and prints from the end.
+*/
+void printArrayElementsReverseAlt(int arr[], int size) {
+    // Base Case: If size is 0, stop
+    if (size == 0)
+        return;
+    // Recursive call: Print rest of array first
+    printArrayElementsReverseAlt(arr + 1, size - 1);
+    // Print current element after recursion (reverse order)
+    cout << arr[0] << " ";
+}
+
+/*
+Iterative Approach (forwards and reverse):
+- Forwards: Simple for loop from 0 to size-1.
+- Reverse: for loop from size-1 to 0.
+- These are more efficient in terms of stack usage (O(1) space).
+*/
+
+/* Forwards Iterative */
+void printArrayElementsIterative(int arr[], int size) {
+    for (int i = 0; i < size; ++i)
+        cout << arr[i] << " ";
+}
+
+/* Reverse Iterative */
+void printArrayElementsReverseIterative(int arr[], int size) {
+    for (int i = size - 1; i >= 0; --i)
+        cout << arr[i] << " ";
+}
+
+/*
+Dry Run Example:
+Input: arr = [1, 2, 3, 4], size = 4
+
+Forward Recursion:
+printArrayElements(arr, 4)
+    prints 1
+    printArrayElements(arr+1, 3)
+        prints 2
+        printArrayElements(arr+2, 2)
+            prints 3
+            printArrayElements(arr+3, 1)
+                prints 4
+                printArrayElements(arr+4, 0)
+                    returns
+Output: 1 2 3 4
+
+Reverse Recursion:
+printArrayElementsReverse(arr, 0, 4)
+    printArrayElementsReverse(arr, 1, 4)
+        printArrayElementsReverse(arr, 2, 4)
+            printArrayElementsReverse(arr, 3, 4)
+                printArrayElementsReverse(arr, 4, 4)
+                    returns
+                prints 4
+            prints 3
+        prints 2
+    prints 1
+Output: 4 3 2 1
+*/
+
+/*
+3) Dry Run on 5 test cases discussed in today's class
+(You can use the above dry run template for any array, e.g. [5, 6, 7], [10], [], [1, 2], [9, 8, 7, 6])
+
+4) Incase of finding digits of number why is the answer of 0647 coming to be 4 2 3 as the digits. Find out the reason.
+
+Explanation:
+- In C++ (and most languages), integer literals with a leading 0 are interpreted as octal (base 8).
+- 0647 in octal = 6*8^2 + 4*8^1 + 7*8^0 = 6*64 + 4*8 + 7*1 = 384 + 32 + 7 = 423 (in decimal).
+- So, when you input 0647, the value stored is 423, not 647.
+- When you extract digits, you get 4, 2, 3 (digits of 423).
+- To avoid this, do not use leading zeros in integer literals.
+
+Better Approach:
+- If you want to process the digits as entered (including leading zeros), take input as a string and process each character.
+- Example:
+    string s = "0647";
+    for(char c : s) cout << c << " ";
+    // Output: 0 6 4 7

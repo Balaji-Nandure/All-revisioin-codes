@@ -1,0 +1,110 @@
+/*
+Approach:
+-----------
+In a singly linked list, each node points to the next node. 
+To properly free all memory when the list is destroyed, we need to traverse the list and delete each node one by one.
+This is typically done in the destructor of the Linked List class.
+
+Below is an example of a Node class and a LinkedList class with a destructor.
+The destructor ensures that all nodes are deleted to prevent memory leaks.
+
+Alternative Approaches:
+-----------------------
+1. Iterative Deletion (shown below): Traverse and delete nodes one by one.
+2. Recursive Deletion: Call delete on the next node recursively in the Node destructor.
+   - This is elegant but can cause stack overflow for very large lists.
+   - Example code for recursive approach is provided in comments below.
+
+*/
+
+// Node class definition
+class Node {
+public:
+    int data;           // stores data
+    Node* next;         // pointer to next node
+
+    Node(int data) {
+        this->data = data;  // initialize data
+        this->next = nullptr; // initialize next pointer
+    }
+
+    // Recursive destructor (Alternative approach)
+    // ~Node() {
+    //     if (next != nullptr) {
+    //         delete next; // recursively delete next nodes
+    //     }
+    //     // current node will be deleted after this
+    // }
+};
+
+// LinkedList class definition
+class LinkedList {
+public:
+    Node* head; // pointer to head node
+
+    LinkedList() {
+        head = nullptr; // initialize head to nullptr
+    }
+
+    // Destructor to delete all nodes in the linked list
+    ~LinkedList() {
+        Node* current = head; // start from head
+        while (current != nullptr) { // traverse till end
+            Node* temp = current;    // store current node
+            current = current->next; // move to next node
+            delete temp;             // delete current node to free memory
+            // after deletion, temp is invalid, so we use current for next iteration
+        }
+        // All nodes are deleted, no memory leak
+    }
+
+    // Function to insert node at end (for testing)
+    void insert(int data) {
+        Node* newNode = new Node(data); // create new node
+        if (head == nullptr) {
+            head = newNode; // if list is empty, new node is head
+        } else {
+            Node* temp = head;
+            while (temp->next != nullptr) { // traverse to last node
+                temp = temp->next;
+            }
+            temp->next = newNode; // link new node at end
+        }
+    }
+};
+
+/*
+Alternative Approach (Recursive Destructor in Node):
+---------------------------------------------------
+class Node {
+public:
+    int data;
+    Node* next;
+    Node(int data) {
+        this->data = data;
+        this->next = nullptr;
+    }
+    ~Node() {
+        delete next; // recursively deletes all next nodes
+    }
+};
+class LinkedList {
+public:
+    Node* head;
+    LinkedList() { head = nullptr; }
+    ~LinkedList() { delete head; } // only need to delete head, rest handled recursively
+};
+Note: Recursive approach is concise but not recommended for very large lists due to stack overflow risk.
+
+Dry Run Example:
+----------------
+Suppose we have a linked list: 10 -> 20 -> 30
+
+1. LinkedList destructor is called.
+2. current = head (10)
+3. temp = current (10), current = current->next (20), delete temp (10)
+4. temp = current (20), current = current->next (30), delete temp (20)
+5. temp = current (30), current = current->next (nullptr), delete temp (30)
+6. current = nullptr, loop ends. All nodes are deleted.
+
+*/

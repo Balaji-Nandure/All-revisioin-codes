@@ -1,0 +1,61 @@
+/*
+Approach:
+-----------
+In C++, a `pair` is a simple container defined in the <utility> header that holds two data elements or objects. 
+You can initialize a pair using curly brackets `{}` (uniform initialization), which is a modern and concise way.
+
+Below are different ways to insert elements into a pair:
+
+1. Using curly brackets (Uniform Initialization) - Modern and recommended:
+*/
+
+#include <iostream>
+#include <utility> // for std::pair
+
+int main() {
+    // Initializing a pair using curly brackets
+    std::pair<int, std::string> p1{1, "apple"}; // {first, second}
+    // p1.first = 1, p1.second = "apple"
+
+    // Output the pair elements
+    std::cout << "p1.first: " << p1.first << ", p1.second: " << p1.second << std::endl;
+
+    /*
+    Alternative Approaches:
+    ----------------------
+    1. Using make_pair (older, but still valid):
+        std::pair<int, std::string> p2 = std::make_pair(2, "banana");
+        // make_pair deduces the types automatically
+
+    2. Using assignment after declaration:
+        std::pair<int, std::string> p3;
+        p3.first = 3;
+        p3.second = "cherry";
+
+    3. Using parentheses (not recommended for uniform initialization, but works for direct initialization):
+        std::pair<int, std::string> p4(4, "date");
+
+    // All above methods create a pair with two elements.
+    */
+
+    // Dry Run:
+    // Step 1: p1 is created with first = 1, second = "apple"
+    // Step 2: Output will be: p1.first: 1, p1.second: apple
+
+    return 0;
+}
+
+/*
+Summary:
+---------
+- Use curly brackets `{}` for modern, type-safe initialization of pairs.
+- Alternatives: make_pair, assignment, or parentheses.
+- Curly brackets prevent narrowing conversions and are preferred in modern C++.
+
+Dry Run Example:
+----------------
+Line: std::pair<int, std::string> p1{1, "apple"};
+    => p1.first = 1, p1.second = "apple"
+Line: std::cout << "p1.first: " << p1.first << ", p1.second: " << p1.second << std::endl;
+    => Output: p1.first: 1, p1.second: apple
+*/

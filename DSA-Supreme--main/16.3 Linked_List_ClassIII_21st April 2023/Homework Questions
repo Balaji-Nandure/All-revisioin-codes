@@ -1,0 +1,157 @@
+
+/*
+Approach 1: Find the middle of a linked list using the length approach
+
+1) Code to find the middle of the linked list using the length approach:
+   - First, traverse the entire linked list to calculate its length.
+   - Then, traverse again up to length/2 to reach the middle node.
+
+   // C++ code with comments:
+   int getLength(Node* head) {
+       int len = 0;
+       Node* temp = head;
+       while(temp != NULL) { // Traverse to count nodes
+           len++;
+           temp = temp->next;
+       }
+       return len;
+   }
+
+   Node* getMiddle(Node* head) {
+       int len = getLength(head); // Get total length
+       int mid = len / 2;         // Find mid index
+       Node* temp = head;
+       for(int i = 0; i < mid; i++) { // Move to mid node
+           temp = temp->next;
+       }
+       return temp; // Middle node
+   }
+
+   // Dry Run:
+   // For list: 1->2->3->4->5, length=5, mid=2, so middle is 3.
+
+   // Better Alternative: Tortoise and Hare (slow and fast pointer)
+   // - Move slow by 1, fast by 2. When fast reaches end, slow is at middle.
+   Node* getMiddleBetter(Node* head) {
+       Node* slow = head;
+       Node* fast = head;
+       while(fast != NULL && fast->next != NULL) {
+           slow = slow->next;
+           fast = fast->next->next;
+       }
+       return slow;
+   }
+   // This approach is O(N) time, O(1) space, and only one traversal.
+
+2) Check if Linked List is Circular or Not
+
+   // Approach 1: Using Single Pointer
+   bool isCircular(Node* head) {
+       if(head == NULL) return true; // Empty list is circular
+       Node* temp = head->next;
+       while(temp != NULL && temp != head) { // Traverse until NULL or head
+           temp = temp->next;
+       }
+       return (temp == head); // If we reach head again, it's circular
+   }
+
+   // Approach 2: Using Slow and Fast Pointer (Floyd's Cycle Detection)
+   bool isCircularFloyd(Node* head) {
+       if(head == NULL) return true;
+       Node* slow = head;
+       Node* fast = head;
+       while(fast != NULL && fast->next != NULL) {
+           slow = slow->next;
+           fast = fast->next->next;
+           if(slow == fast) return true; // Loop detected
+       }
+       return false; // No loop
+   }
+
+   // Approach 3: Using Map to detect visited nodes
+   #include <unordered_map>
+   bool isCircularMap(Node* head) {
+       if(head == NULL) return true;
+       std::unordered_map<Node*, bool> visited;
+       Node* temp = head;
+       while(temp != NULL) {
+           if(visited[temp]) return true; // Node already visited
+           visited[temp] = true;
+           temp = temp->next;
+       }
+       return false;
+   }
+
+3) Find and count function in map
+
+   // In C++, unordered_map provides:
+   // - find(key): returns iterator to key if found, else end()
+   // - count(key): returns 1 if key exists, else 0
+
+   std::unordered_map<int, int> mp;
+   mp[5] = 10;
+   if(mp.find(5) != mp.end()) { // find function usage
+       // Key 5 exists
+   }
+   if(mp.count(5)) { // count function usage
+       // Key 5 exists
+   }
+
+4) Should we write slow != NULL in the LOOP where fast != NULL ??
+
+   // No, it's not necessary. If fast != NULL and fast->next != NULL, then slow will never be NULL before fast.
+   // So, the loop condition should be:
+   // while(fast != NULL && fast->next != NULL)
+   // This ensures both pointers are valid and prevents segmentation fault.
+
+5) Can we apply slow and fast to find whether circular linked list or not?
+
+   // Yes, this is the Floyd's Cycle Detection Algorithm.
+   // If slow and fast pointers meet, there is a cycle (circular).
+   // If fast reaches NULL, there is no cycle.
+
+6) Find a case where prev = fast thing will fail while we remove the loop in linked list.
+
+   // When removing a loop, we often use:
+   // prev = fast; fast = fast->next;
+   // But if the loop starts at the head, prev may not point to the correct node to break the loop.
+   // Example:
+   // 1->2->3->4->5->3 (loop starts at 3)
+   // If you set prev = fast, and then fast = fast->next, you may not break the loop at the correct place.
+   // Correct approach: After detecting the loop, move one pointer to head, and move both pointers one step at a time.
+   // When their next pointers are equal, set that next to NULL to break the loop.
+
+   // Code to remove loop:
+   void removeLoop(Node* head) {
+       Node* slow = head;
+       Node* fast = head;
+       // Detect loop
+       while(fast && fast->next) {
+           slow = slow->next;
+           fast = fast->next->next;
+           if(slow == fast) break;
+       }
+       if(slow != fast) return; // No loop
+       slow = head;
+       Node* prev = NULL;
+       while(slow != fast) {
+           prev = fast;
+           slow = slow->next;
+           fast = fast->next;
+       }
+       // prev is at the node before the start of loop
+       prev->next = NULL; // Remove loop
+   }
+
+   // Dry Run for removeLoop:
+   // List: 1->2->3->4->5->3 (loop at 3)
+   // After detection, slow=head, fast=meeting point.
+   // Move both one step, prev tracks fast.
+   // When slow==fast, prev is at 5, so prev->next=NULL breaks the loop.
+
+   // Summary:
+   // - Use length or slow/fast pointer for middle.
+   // - Use single pointer, slow/fast, or map for cycle detection.
+   // - Use map's find/count for key existence.
+   // - Use correct loop conditions to avoid errors.
+   // - For loop removal, track previous node to break the loop at correct place.

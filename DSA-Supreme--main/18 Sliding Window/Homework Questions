@@ -1,0 +1,66 @@
+/*
+    Approach:
+    -----------
+    The sliding window technique is a powerful method for solving problems involving subarrays or substrings in arrays/strings.
+    It helps in reducing the time complexity from O(n^2) (brute force) to O(n) in many cases by maintaining a window of elements and moving it efficiently.
+
+    The main idea is to maintain a window (a range of indices) and slide it over the data structure to find the answer.
+
+    Common Sliding Window Patterns:
+    1. Fixed-size window: The window size is constant (e.g., find the max sum of k consecutive elements).
+    2. Variable-size window: The window size can change based on some condition (e.g., longest substring with at most k distinct characters).
+
+    For more details and problem list, refer:
+    https://leetcode.com/discuss/general-discussion/1122776/summary-of-sliding-window-patterns-for-subarray-substring
+
+    Example Problem (Fixed-size window):
+    -------------------------------------
+    // Find the maximum sum of any subarray of size k
+    int maxSumSubarray(vector<int>& nums, int k) {
+        int n = nums.size();
+        int maxSum = 0, windowSum = 0;
+        // Calculate sum of first window of size k
+        for(int i = 0; i < k; i++) {
+            windowSum += nums[i]; // add next element to window
+        }
+        maxSum = windowSum; // initialize maxSum with first window sum
+
+        // Slide the window from start to end of array
+        for(int i = k; i < n; i++) {
+            windowSum += nums[i] - nums[i - k]; // add next element, remove first element of previous window
+            maxSum = max(maxSum, windowSum); // update maxSum if current windowSum is greater
+        }
+        return maxSum;
+    }
+    // Dry Run:
+    // nums = [2, 1, 5, 1, 3, 2], k = 3
+    // First window: 2+1+5=8
+    // Next: 1+5+1=7, Next: 5+1+3=9, Next: 1+3+2=6
+    // maxSum = 9
+
+    Example Problem (Variable-size window):
+    ----------------------------------------
+    // Find the length of the longest substring with at most k distinct characters
+    int lengthOfLongestSubstringKDistinct(string s, int k) {
+        unordered_map<char, int> freq;
+        int left = 0, right = 0, maxLen = 0;
+        while(right < s.size()) {
+            freq[s[right]]++; // include current character in window
+            // If window has more than k distinct characters, shrink from left
+            while(freq.size() > k) {
+                freq[s[left]]--;
+                if(freq[s[left]] == 0) freq.erase(s[left]);
+                left++; // move left pointer to shrink window
+            }
+            maxLen = max(maxLen, right - left + 1); // update maxLen if current window is longer
+            right++; // expand window to right
+        }
+        return maxLen;
+    }
+    // Dry Run:
+    // s = "eceba", k = 2
+    // Window expands: "e", "ec", "ece" (valid), "eceb" (now 3 distinct, shrink), "ceb" (valid), "ceba" (3 distinct, shrink)
+    // Longest valid window: "ece" or "ceb" => length 3
+
+    // For more practice, try questions mentioned in the slides of sliding window and the above LeetCode link.
+*/

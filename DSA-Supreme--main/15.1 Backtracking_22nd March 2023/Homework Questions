@@ -1,0 +1,148 @@
+/*
+Approach:
+-----------
+The "Rat in a Maze" problem is a classic backtracking problem. The goal is to find all possible paths for a rat to move from the top-left corner (0,0) to the bottom-right corner (n-1,n-1) of a maze, represented as a 2D grid. The rat can move in four directions (up, down, left, right) and can only move to cells that are open (represented by 1). The cell with 0 is blocked.
+
+Key Steps:
+-----------
+1. Use recursion and backtracking to explore all possible paths.
+2. Mark the current cell as visited to avoid cycles.
+3. If the destination is reached, store the path.
+4. Backtrack: unmark the cell before returning to explore other paths.
+
+Below is a C++ implementation with detailed comments:
+
+*/
+
+// Function to check if the next move is valid
+bool isSafe(int x, int y, vector<vector<int>>& maze, vector<vector<bool>>& visited, int n) {
+    // Check if (x, y) is inside the maze and not blocked and not visited
+    return (x >= 0 && x < n && y >= 0 && y < n && maze[x][y] == 1 && !visited[x][y]);
+}
+
+// Recursive function to find all paths
+void solve(int x, int y, vector<vector<int>>& maze, int n, vector<string>& ans, string path, vector<vector<bool>>& visited) {
+    // Base case: if destination is reached, add path to answer
+    if (x == n-1 && y == n-1) {
+        ans.push_back(path);
+        return;
+    }
+    
+    // Mark current cell as visited
+    visited[x][y] = true;
+    
+    // Move Down
+    if (isSafe(x+1, y, maze, visited, n)) {
+        solve(x+1, y, maze, n, ans, path + 'D', visited);
+    }
+    // Move Left
+    if (isSafe(x, y-1, maze, visited, n)) {
+        solve(x, y-1, maze, n, ans, path + 'L', visited);
+    }
+    // Move Right
+    if (isSafe(x, y+1, maze, visited, n)) {
+        solve(x, y+1, maze, n, ans, path + 'R', visited);
+    }
+    // Move Up
+    if (isSafe(x-1, y, maze, visited, n)) {
+        solve(x-1, y, maze, n, ans, path + 'U', visited);
+    }
+    
+    // Backtrack: Unmark current cell
+    visited[x][y] = false;
+}
+
+// Main function to find all paths
+vector<string> findPath(vector<vector<int>>& maze, int n) {
+    vector<string> ans;
+    vector<vector<bool>> visited(n, vector<bool>(n, false));
+    if (maze[0][0] == 1) { // Only start if starting cell is open
+        solve(0, 0, maze, n, ans, "", visited);
+    }
+    return ans;
+}
+
+/*
+Better Alternatives:
+---------------------
+1. Instead of using a string for path, you can use a vector of coordinates for more detailed path tracking.
+2. To optimize space, you can use a single visited array and restore its state after recursion (as above).
+3. For shortest path, use BFS instead of DFS/backtracking.
+
+BFS Approach for Shortest Path (in comments):
+
+// BFS for shortest path
+int shortestPath(vector<vector<int>>& maze, int n) {
+    queue<pair<pair<int,int>, int>> q; // ((x, y), steps)
+    vector<vector<bool>> visited(n, vector<bool>(n, false));
+    if (maze[0][0] == 0) return -1;
+    q.push({{0,0}, 0});
+    visited[0][0] = true;
+    int dx[] = {1, 0, 0, -1};
+    int dy[] = {0, -1, 1, 0};
+    while (!q.empty()) {
+        auto node = q.front(); q.pop();
+        int x = node.first.first, y = node.first.second, steps = node.second;
+        if (x == n-1 && y == n-1) return steps;
+        for (int i = 0; i < 4; i++) {
+            int nx = x + dx[i], ny = y + dy[i];
+            if (nx >= 0 && nx < n && ny >= 0 && ny < n && maze[nx][ny] == 1 && !visited[nx][ny]) {
+                visited[nx][ny] = true;
+                q.push({{nx, ny}, steps+1});
+            }
+        }
+    }
+    return -1; // No path found
+}
+
+*/
+
+/*
+Dry Run on 5 Test Cases:
+-------------------------
+Test Case 1:
+Maze:
+1 0 0
+1 1 0
+0 1 1
+Paths: ["DDRDR", "DRDDR"]
+
+Test Case 2:
+Maze:
+1 1 1
+1 0 1
+1 1 1
+Paths: ["DDRDRR", "DRDDRR", "DRDRDR", "DRDRRD", "DRRDDR", "DRRRDD"]
+
+Test Case 3:
+Maze:
+1 0
+0 1
+Paths: [] (No path)
+
+Test Case 4:
+Maze:
+1 1
+1 1
+Paths: ["DR", "RD"]
+
+Test Case 5:
+Maze:
+1 0 1
+1 1 1
+0 0 1
+Paths: ["DRRDR"]
+
+Explanation for Test Case 1:
+-----------------------------
+Start at (0,0)
+- Move Down to (1,0) [D]
+- Move Down to (2,0) [DD] (blocked, so backtrack)
+- From (1,0), Move Right to (1,1) [DR]
+- From (1,1), Move Down to (2,1) [DRD]
+- From (2,1), Move Right to (2,2) [DRDR] (destination reached)
+- Backtrack and try other possible moves...
+
+(Continue similarly for other test cases.)
+
+*/

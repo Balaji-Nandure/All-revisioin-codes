@@ -1,0 +1,416 @@
+/*
+--------------------------------------------------------------------------------
+Approach 1: Insertion at Specified Position in Singly Linked List (Using Single Pointer)
+--------------------------------------------------------------------------------
+- We want to insert a node at a given position (0-based index) in a singly linked list using only a single pointer (no double pointer or reference to pointer).
+- The steps are:
+    1. If inserting at head (position 0), handle separately.
+    2. Otherwise, traverse to the node just before the desired position.
+    3. Insert the new node by adjusting pointers.
+
+- Order of steps is important to avoid losing links in the list.
+
+--------------------------------------------------------------------------------
+Code with Detailed Comments
+--------------------------------------------------------------------------------
+*/
+
+#include <iostream>
+using namespace std;
+
+// Node class for singly linked list
+class Node {
+public:
+    int data;
+    Node* next;
+    Node(int data) {
+        this->data = data;
+        this->next = nullptr;
+    }
+};
+
+// Function to insert at specified position using only a single pointer
+void insertAtPosition(Node* &head, int data, int pos) {
+    // Create new node
+    Node* newNode = new Node(data); // Allocate new node with given data
+
+    // Case 1: Insert at head (position 0)
+    if (pos == 0) {
+        newNode->next = head; // Point new node to current head
+        head = newNode;       // Update head to new node
+        return;
+    }
+
+    // Case 2: Insert at position > 0
+    Node* temp = head; // Start from head
+    int cnt = 0;
+    // Traverse to node just before the desired position
+    while (cnt < pos - 1 && temp != nullptr) {
+        temp = temp->next;
+        cnt++;
+    }
+    // If position is out of bounds, do nothing
+    if (temp == nullptr) {
+        delete newNode; // Avoid memory leak
+        return;
+    }
+    // Insert new node by adjusting pointers
+    newNode->next = temp->next; // Link new node to next node
+    temp->next = newNode;       // Link previous node to new node
+}
+
+// Function to print the linked list
+void printList(Node* head) {
+    Node* temp = head;
+    while (temp != nullptr) {
+        cout << temp->data << " ";
+        temp = temp->next;
+    }
+    cout << endl;
+}
+
+/*
+--------------------------------------------------------------------------------
+Better/Alternative Approaches:
+--------------------------------------------------------------------------------
+1. **Encapsulate in a LinkedList Class:**
+   - Encapsulate head pointer and all operations in a class for better abstraction and safety.
+   - Example:
+     class LinkedList {
+         Node* head;
+     public:
+         LinkedList() : head(nullptr) {}
+         void insertAtPosition(int data, int pos) { ... }
+         void print() { ... }
+         ~LinkedList(); // Destructor to free memory
+     };
+
+2. **Using a Dummy Head Node:**
+   - Simplifies edge cases (like empty list or insert at head) by always having a non-null head.
+   - Example:
+     Node* dummy = new Node(-1);
+     // All insertions happen after dummy
+
+3. **Smart Pointers (C++11+):**
+   - Use `std::unique_ptr` for automatic memory management, avoiding manual `new`/`delete`.
+
+--------------------------------------------------------------------------------
+Dry Run Example:
+--------------------------------------------------------------------------------
+Suppose list is: 10 -> 20 -> 30
+insertAtPosition(head, 15, 1)
+- newNode = 15
+- Traverse to position 0 (node 10)
+- newNode->next = 10->next (20)
+- 10->next = newNode
+Result: 10 -> 15 -> 20 -> 30
+
+--------------------------------------------------------------------------------
+Approach 2: All Operations for Circular Linked List (Singly and Doubly)
+--------------------------------------------------------------------------------
+- Circular Linked List: Last node points back to head (for singly), or head's prev points to tail and tail's next points to head (for doubly).
+- Operations: Insertion at head, insertion at tail, insertion at position, deletion at head, deletion at tail, deletion at position, print.
+
+--------------------------------------------------------------------------------
+Singly Circular Linked List Implementation
+--------------------------------------------------------------------------------
+*/
+
+class SNode {
+public:
+    int data;
+    SNode* next;
+    SNode(int data) {
+        this->data = data;
+        this->next = nullptr;
+    }
+};
+
+// Insert at head in singly circular linked list
+void insertAtHead(SNode* &head, int data) {
+    SNode* newNode = new SNode(data);
+    if (head == nullptr) {
+        newNode->next = newNode; // Point to itself
+        head = newNode;
+        return;
+    }
+    SNode* temp = head;
+    // Traverse to last node
+    while (temp->next != head) {
+        temp = temp->next;
+    }
+    temp->next = newNode;    // Last node points to new node
+    newNode->next = head;    // New node points to head
+    head = newNode;          // Update head
+}
+
+// Insert at tail in singly circular linked list
+void insertAtTail(SNode* &head, int data) {
+    SNode* newNode = new SNode(data);
+    if (head == nullptr) {
+        newNode->next = newNode;
+        head = newNode;
+        return;
+    }
+    SNode* temp = head;
+    while (temp->next != head) {
+        temp = temp->next;
+    }
+    temp->next = newNode;
+    newNode->next = head;
+}
+
+// Insert at position in singly circular linked list
+void insertAtPosition(SNode* &head, int data, int pos) {
+    if (pos == 0) {
+        insertAtHead(head, data);
+        return;
+    }
+    SNode* temp = head;
+    int cnt = 0;
+    while (cnt < pos - 1 && temp->next != head) {
+        temp = temp->next;
+        cnt++;
+    }
+    SNode* newNode = new SNode(data);
+    newNode->next = temp->next;
+    temp->next = newNode;
+}
+
+// Delete at head in singly circular linked list
+void deleteAtHead(SNode* &head) {
+    if (head == nullptr) return;
+    if (head->next == head) {
+        delete head;
+        head = nullptr;
+        return;
+    }
+    SNode* temp = head;
+    while (temp->next != head) {
+        temp = temp->next;
+    }
+    SNode* toDelete = head;
+    temp->next = head->next;
+    head = head->next;
+    delete toDelete;
+}
+
+// Delete at tail in singly circular linked list
+void deleteAtTail(SNode* &head) {
+    if (head == nullptr) return;
+    if (head->next == head) {
+        delete head;
+        head = nullptr;
+        return;
+    }
+    SNode* temp = head;
+    while (temp->next->next != head) {
+        temp = temp->next;
+    }
+    SNode* toDelete = temp->next;
+    temp->next = head;
+    delete toDelete;
+}
+
+// Delete at position in singly circular linked list
+void deleteAtPosition(SNode* &head, int pos) {
+    if (head == nullptr) return;
+    if (pos == 0) {
+        deleteAtHead(head);
+        return;
+    }
+    SNode* temp = head;
+    int cnt = 0;
+    while (cnt < pos - 1 && temp->next != head) {
+        temp = temp->next;
+        cnt++;
+    }
+    SNode* toDelete = temp->next;
+    temp->next = toDelete->next;
+    delete toDelete;
+}
+
+// Print singly circular linked list
+void printCircularList(SNode* head) {
+    if (head == nullptr) return;
+    SNode* temp = head;
+    do {
+        cout << temp->data << " ";
+        temp = temp->next;
+    } while (temp != head);
+    cout << endl;
+}
+
+/*
+--------------------------------------------------------------------------------
+Doubly Circular Linked List Implementation
+--------------------------------------------------------------------------------
+*/
+
+class DNode {
+public:
+    int data;
+    DNode* prev;
+    DNode* next;
+    DNode(int data) {
+        this->data = data;
+        this->prev = nullptr;
+        this->next = nullptr;
+    }
+};
+
+// Insert at head in doubly circular linked list
+void insertAtHead(DNode* &head, int data) {
+    DNode* newNode = new DNode(data);
+    if (head == nullptr) {
+        newNode->next = newNode;
+        newNode->prev = newNode;
+        head = newNode;
+        return;
+    }
+    DNode* tail = head->prev;
+    newNode->next = head;
+    newNode->prev = tail;
+    tail->next = newNode;
+    head->prev = newNode;
+    head = newNode;
+}
+
+// Insert at tail in doubly circular linked list
+void insertAtTail(DNode* &head, int data) {
+    if (head == nullptr) {
+        insertAtHead(head, data);
+        return;
+    }
+    DNode* newNode = new DNode(data);
+    DNode* tail = head->prev;
+    tail->next = newNode;
+    newNode->prev = tail;
+    newNode->next = head;
+    head->prev = newNode;
+}
+
+// Insert at position in doubly circular linked list
+void insertAtPosition(DNode* &head, int data, int pos) {
+    if (pos == 0) {
+        insertAtHead(head, data);
+        return;
+    }
+    DNode* temp = head;
+    int cnt = 0;
+    while (cnt < pos - 1 && temp->next != head) {
+        temp = temp->next;
+        cnt++;
+    }
+    DNode* newNode = new DNode(data);
+    newNode->next = temp->next;
+    newNode->prev = temp;
+    temp->next->prev = newNode;
+    temp->next = newNode;
+}
+
+// Delete at head in doubly circular linked list
+void deleteAtHead(DNode* &head) {
+    if (head == nullptr) return;
+    if (head->next == head) {
+        delete head;
+        head = nullptr;
+        return;
+    }
+    DNode* tail = head->prev;
+    DNode* toDelete = head;
+    head = head->next;
+    tail->next = head;
+    head->prev = tail;
+    delete toDelete;
+}
+
+// Delete at tail in doubly circular linked list
+void deleteAtTail(DNode* &head) {
+    if (head == nullptr) return;
+    if (head->next == head) {
+        delete head;
+        head = nullptr;
+        return;
+    }
+    DNode* tail = head->prev;
+    DNode* newTail = tail->prev;
+    newTail->next = head;
+    head->prev = newTail;
+    delete tail;
+}
+
+// Delete at position in doubly circular linked list
+void deleteAtPosition(DNode* &head, int pos) {
+    if (head == nullptr) return;
+    if (pos == 0) {
+        deleteAtHead(head);
+        return;
+    }
+    DNode* temp = head;
+    int cnt = 0;
+    while (cnt < pos && temp->next != head) {
+        temp = temp->next;
+        cnt++;
+    }
+    temp->prev->next = temp->next;
+    temp->next->prev = temp->prev;
+    delete temp;
+}
+
+// Print doubly circular linked list
+void printCircularList(DNode* head) {
+    if (head == nullptr) return;
+    DNode* temp = head;
+    do {
+        cout << temp->data << " ";
+        temp = temp->next;
+    } while (temp != head);
+    cout << endl;
+}
+
+/*
+--------------------------------------------------------------------------------
+Better/Alternative Approaches for Circular Linked List:
+--------------------------------------------------------------------------------
+1. **Encapsulate in a CircularLinkedList Class:**
+   - Encapsulate head pointer and all operations in a class for better abstraction and safety.
+   - Example:
+     class CircularLinkedList {
+         SNode* head;
+     public:
+         CircularLinkedList() : head(nullptr) {}
+         void insertAtHead(int data) { ... }
+         void deleteAtTail() { ... }
+         void print() { ... }
+         ~CircularLinkedList(); // Destructor to free memory
+     };
+
+2. **Use Tail Pointer:**
+   - Maintain a tail pointer for O(1) insertions at tail and easier deletion at tail.
+
+3. **Smart Pointers (C++11+):**
+   - Use `std::unique_ptr` for automatic memory management.
+
+--------------------------------------------------------------------------------
+Dry Run Example for Singly Circular Linked List:
+--------------------------------------------------------------------------------
+Initial: head = nullptr
+insertAtHead(head, 10) -> 10 (points to itself)
+insertAtTail(head, 20) -> 10 -> 20 -> (points to 10)
+insertAtPosition(head, 15, 1) -> 10 -> 15 -> 20 -> (points to 10)
+deleteAtHead(head) -> 15 -> 20 -> (points to 15)
+deleteAtTail(head) -> 15 -> (points to 15)
+
+--------------------------------------------------------------------------------
+Dry Run Example for Doubly Circular Linked List:
+--------------------------------------------------------------------------------
+Initial: head = nullptr
+insertAtHead(head, 10) -> 10 (prev and next point to itself)
+insertAtTail(head, 20) -> 10 <-> 20 (circular)
+insertAtPosition(head, 15, 1) -> 10 <-> 15 <-> 20 (circular)
+deleteAtHead(head) -> 15 <-> 20 (circular)
+deleteAtTail(head) -> 15 (circular)
+
+--------------------------------------------------------------------------------
+*/

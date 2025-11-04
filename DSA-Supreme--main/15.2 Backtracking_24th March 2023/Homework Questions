@@ -1,0 +1,118 @@
+/*
+Approach:
+-----------
+The N-Queens problem is a classic backtracking problem where we need to place N queens on an N x N chessboard such that no two queens threaten each other. This means that no two queens share the same row, column, or diagonal.
+
+The standard approach is to use backtracking:
+1. Place a queen in a row, try all columns.
+2. For each placement, check if it's safe (no other queen in the same column or diagonals).
+3. If safe, move to the next row.
+4. If all queens are placed, print the solution.
+5. If not possible, backtrack and try another column.
+
+Below is a C++ implementation with detailed comments explaining each step.
+*/
+
+// Function to check if it's safe to place a queen at board[row][col]
+bool isSafe(vector<vector<int>>& board, int row, int col, int n) {
+    // Check column above
+    for(int i = 0; i < row; i++) {
+        if(board[i][col] == 1) return false; // Another queen in the same column
+    }
+    // Check upper left diagonal
+    for(int i = row-1, j = col-1; i>=0 && j>=0; i--, j--) {
+        if(board[i][j] == 1) return false; // Another queen in the left diagonal
+    }
+    // Check upper right diagonal
+    for(int i = row-1, j = col+1; i>=0 && j<n; i--, j++) {
+        if(board[i][j] == 1) return false; // Another queen in the right diagonal
+    }
+    return true; // Safe to place queen
+}
+
+// Recursive function to solve N-Queens
+bool solveNQueens(vector<vector<int>>& board, int row, int n) {
+    if(row == n) {
+        // All queens placed successfully
+        return true;
+    }
+    for(int col = 0; col < n; col++) {
+        if(isSafe(board, row, col, n)) {
+            board[row][col] = 1; // Place queen
+            if(solveNQueens(board, row+1, n)) return true; // Recur for next row
+            board[row][col] = 0; // Backtrack: Remove queen
+        }
+    }
+    return false; // No valid position in this row
+}
+
+// Function to print the board
+void printBoard(vector<vector<int>>& board, int n) {
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<n; j++) {
+            cout << (board[i][j] ? "Q " : ". ");
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+// Main function to test N-Queens for different N
+void testNQueens() {
+    vector<int> testCases = {1, 2, 3, 4, 5}; // 5 test cases as required
+    for(int n : testCases) {
+        cout << "N = " << n << endl;
+        vector<vector<int>> board(n, vector<int>(n, 0));
+        if(solveNQueens(board, 0, n)) {
+            printBoard(board, n);
+        } else {
+            cout << "No solution exists for N = " << n << endl << endl;
+        }
+    }
+}
+
+/*
+Better Alternative Approach:
+-----------------------------
+The above approach checks for safety in O(N) time for each placement. We can optimize it using three arrays to keep track of columns and diagonals in O(1) time.
+
+Code (in comments):
+
+void solve(int row, int n, vector<int>& col, vector<int>& diag1, vector<int>& diag2, vector<vector<int>>& board) {
+    if(row == n) {
+        // print solution
+        return;
+    }
+    for(int c = 0; c < n; c++) {
+        if(!col[c] && !diag1[row-c+n-1] && !diag2[row+c]) {
+            board[row][c] = 1;
+            col[c] = diag1[row-c+n-1] = diag2[row+c] = 1;
+            solve(row+1, n, col, diag1, diag2, board);
+            board[row][c] = 0;
+            col[c] = diag1[row-c+n-1] = diag2[row+c] = 0;
+        }
+    }
+}
+
+This reduces the time for safety check to O(1) per placement.
+
+Dry Run for N = 4:
+-------------------
+Step 1: Place queen at (0,0)
+Step 2: Next row, try (1,0) - not safe, (1,1) - not safe, (1,2) - safe, place at (1,2)
+Step 3: Next row, try (2,0) - not safe, (2,1) - not safe, (2,2) - not safe, (2,3) - safe, place at (2,3)
+Step 4: Next row, try (3,0) - not safe, (3,1) - safe, place at (3,1)
+Step 5: All queens placed, print solution.
+
+Test Cases Dry Run:
+--------------------
+N=1:  Q
+N=2:  No solution
+N=3:  No solution
+N=4:  . Q . .    Q . . .
+       . . . Q    . . Q .
+       Q . . .    . . . Q
+       . . Q .    . Q . .
+N=5:  (prints one valid solution)
+
+*/

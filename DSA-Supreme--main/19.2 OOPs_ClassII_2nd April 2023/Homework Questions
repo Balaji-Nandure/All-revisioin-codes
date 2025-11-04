@@ -1,0 +1,150 @@
+
+/*
+Approach:
+This document addresses three important OOPs concepts:
+1. Multiple inheritance in Java vs C++
+2. Operator overloading: which operators can/cannot be overloaded
+3. Implementation of operator overloading for << and >> in C++
+
+For each, we provide explanations, code samples, and alternatives where applicable.
+*/
+
+// 1) Why is multiple inheritance not possible in Java and is possible in C++?
+
+/*
+Logic:
+- In C++, a class can inherit from multiple base classes (multiple inheritance).
+- In Java, a class cannot inherit from more than one class (no multiple inheritance).
+- The main reason is to avoid ambiguity (Diamond Problem) and simplify the language design.
+- Java solves this by allowing multiple interface inheritance, not class inheritance.
+
+Example in C++ (Multiple Inheritance):
+*/
+
+class A {
+public:
+    void showA() { /* logic for A */ }
+};
+
+class B {
+public:
+    void showB() { /* logic for B */ }
+};
+
+// Multiple inheritance: C inherits from both A and B
+class C : public A, public B {
+    // C has access to showA() and showB()
+};
+
+/*
+In Java, the following is NOT allowed:
+
+class A { }
+class B { }
+class C extends A, B { } // Error: Java does not support multiple inheritance
+
+// Instead, Java uses interfaces:
+interface A { void showA(); }
+interface B { void showB(); }
+class C implements A, B {
+    public void showA() { /* implementation */ }
+    public void showB() { /* implementation */ }
+}
+*/
+
+/*
+Better Alternative:
+- Use interfaces in Java to achieve multiple inheritance of type.
+- In C++, use virtual inheritance to resolve ambiguity if both base classes have a common base.
+*/
+
+// 2) Which operators can be overloaded and which can not be?
+
+/*
+Logic:
+- In C++, most operators can be overloaded, but some cannot for safety and language reasons.
+- Operators that can be overloaded: +, -, *, /, %, <<, >>, ==, !=, <, >, <=, >=, [], (), ->, ++, --, etc.
+- Operators that CANNOT be overloaded: :: (scope resolution), . (member access), .* (member pointer access), ?: (ternary), sizeof, typeid, static_cast, dynamic_cast, const_cast, reinterpret_cast.
+
+Reference:
+https://en.cppreference.com/w/cpp/language/operators
+
+// Table for clarity:
+| Operator      | Overloadable? | Reason if not |
+|---------------|--------------|--------------|
+| +, -, *, /    | Yes          |              |
+| =             | Yes          |              |
+| []            | Yes          |              |
+| ()            | Yes          |              |
+| ->            | Yes          |              |
+| <<, >>        | Yes          |              |
+| ::            | No           | Scope resolution is compile-time only |
+| .             | No           | Member access is compile-time only    |
+| .*            | No           | Member pointer access                 |
+| ?:            | No           | Ternary operator                      |
+| sizeof        | No           | Compile-time operator                 |
+| typeid        | No           | RTTI operator                         |
+| ...           | No           | Variadic arguments                    |
+*/
+
+// 3) Do operator overloading of << , >> 
+
+/*
+Logic:
+- << and >> are stream insertion and extraction operators in C++.
+- Overloading these allows custom objects to be input/output using cin/cout.
+- Typically, these are overloaded as friend functions for access to private members.
+
+Example:
+*/
+
+#include <iostream>
+using namespace std;
+
+class Point {
+    int x, y;
+public:
+    Point(int x=0, int y=0) : x(x), y(y) {}
+
+    // Overload << for output
+    friend ostream& operator<<(ostream& out, const Point& p) {
+        // Output format: (x, y)
+        out << "(" << p.x << ", " << p.y << ")";
+        return out;
+    }
+
+    // Overload >> for input
+    friend istream& operator>>(istream& in, Point& p) {
+        // Input format: x y
+        in >> p.x >> p.y;
+        return in;
+    }
+};
+
+/*
+Better Alternative:
+- For more complex classes, validate input in operator>>.
+- For output, provide formatting options or overload to_string() for string conversion.
+
+Example with validation:
+friend istream& operator>>(istream& in, Point& p) {
+    int x, y;
+    if (in >> x >> y) {
+        p.x = x;
+        p.y = y;
+    } else {
+        // Handle error
+        p.x = p.y = 0;
+    }
+    return in;
+}
+*/
+
+/*
+Dry Run:
+Point p;
+cin >> p; // User enters: 3 4
+// operator>> sets p.x = 3, p.y = 4
+
+cout << p; // Outputs: (3, 4)
+*/

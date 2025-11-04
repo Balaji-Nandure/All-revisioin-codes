@@ -1,0 +1,154 @@
+//---------------------------------------------------------------
+// 1) Randomized Quick Sort: Approach, Logic, Alternatives & Code
+//---------------------------------------------------------------
+
+/*
+Approach:
+---------
+- Randomized Quick Sort is a variant of Quick Sort where the pivot is chosen randomly.
+- This helps to avoid the worst-case time complexity (O(n^2)) that occurs when the pivot is always the smallest or largest element (as in already sorted arrays).
+- By randomizing the pivot, the expected time complexity becomes O(n log n) for all cases.
+
+Logic:
+------
+- Select a random index between low and high as the pivot.
+- Swap the random pivot with the last element (or any fixed position).
+- Partition the array around the pivot (all elements less than pivot to left, greater to right).
+- Recursively apply the same logic to left and right subarrays.
+*/
+
+// Code with Comments:
+#include <iostream>
+#include <cstdlib> // For rand() and srand()
+#include <ctime>   // For time()
+using namespace std;
+
+// Partition function with random pivot
+int randomizedPartition(int arr[], int low, int high) {
+    int randomIndex = low + rand() % (high - low + 1); // Pick random pivot index
+    swap(arr[randomIndex], arr[high]); // Move random pivot to end for partitioning
+    int pivot = arr[high];
+    int i = low - 1;
+    for(int j = low; j < high; j++) {
+        if(arr[j] < pivot) { // If current element is less than pivot
+            i++;
+            swap(arr[i], arr[j]); // Place it in correct position
+        }
+    }
+    swap(arr[i+1], arr[high]); // Place pivot in correct position
+    return i+1; // Return pivot index
+}
+
+// Randomized Quick Sort function
+void randomizedQuickSort(int arr[], int low, int high) {
+    if(low < high) {
+        int pi = randomizedPartition(arr, low, high); // Partition index
+        randomizedQuickSort(arr, low, pi - 1);  // Sort left subarray
+        randomizedQuickSort(arr, pi + 1, high); // Sort right subarray
+    }
+}
+
+int main() {
+    srand(time(0)); // Seed for random number generator
+    int arr[] = {10, 7, 8, 9, 1, 5};
+    int n = sizeof(arr)/sizeof(arr[0]);
+    randomizedQuickSort(arr, 0, n-1);
+    cout << "Sorted array: ";
+    for(int i = 0; i < n; i++) cout << arr[i] << " ";
+    return 0;
+}
+
+/*
+Better Alternatives & Detailed Approaches:
+------------------------------------------
+- Deterministic Quick Sort: Always picks a fixed pivot (first, last, or middle element). Can degrade to O(n^2) in worst case.
+- Merge Sort: Always O(n log n) time, but uses extra space.
+- Heap Sort: O(n log n) time, in-place, but not stable.
+- IntroSort: Hybrid of Quick Sort, Heap Sort, and Insertion Sort (used in STL sort).
+
+---------------------------------------------------------------
+2) Why is Time Complexity of Permutations of Strings O(n!)?
+---------------------------------------------------------------
+
+Explanation:
+------------
+- For a string of length n, the number of possible permutations is n! (n factorial).
+- At each position, you have n choices for the first character, (n-1) for the second, ..., 1 for the last.
+- The backtracking algorithm generates all possible arrangements, so the time complexity is O(n!).
+- Each permutation takes O(n) time to construct (copying string), so total time is O(n * n!).
+
+---------------------------------------------------------------
+3) Backtracking Solution for Permutations of Strings: Approach, Code, Dry Run
+---------------------------------------------------------------
+
+Approach:
+---------
+- Use backtracking to generate all permutations by swapping each character with every other character (including itself) and recursively permuting the rest.
+- At each recursion level, fix one character and permute the rest.
+*/
+
+// Code with Comments:
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Helper function to generate permutations
+void permute(string &s, int l, int r, vector<string> &result) {
+    if(l == r) {
+        result.push_back(s); // Base case: one permutation found
+        return;
+    }
+    for(int i = l; i <= r; i++) {
+        swap(s[l], s[i]); // Swap current index with i
+        permute(s, l+1, r, result); // Recurse for next index
+        swap(s[l], s[i]); // Backtrack: restore original string
+    }
+}
+
+int main_permute() {
+    string s = "xyz";
+    vector<string> result;
+    permute(s, 0, s.size()-1, result);
+    cout << "All permutations of xyz:\n";
+    for(auto &str : result) cout << str << "\n";
+    return 0;
+}
+
+/*
+Better Alternatives & Detailed Approaches:
+------------------------------------------
+- STL next_permutation: Generates permutations in lexicographical order.
+- Iterative Approach: Using next_permutation in a loop.
+- Heap's Algorithm: Efficient for generating all permutations.
+
+Dry Run Example for "xyz":
+--------------------------
+Call Stack:
+permute("xyz", 0, 2)
+    i=0: swap(0,0) -> "xyz"
+        permute("xyz", 1, 2)
+            i=1: swap(1,1) -> "xyz"
+                permute("xyz", 2, 2) -> result: "xyz"
+            i=2: swap(1,2) -> "xzy"
+                permute("xzy", 2, 2) -> result: "xzy"
+            backtrack: swap(1,2) -> "xyz"
+    i=1: swap(0,1) -> "yxz"
+        permute("yxz", 1, 2)
+            i=1: swap(1,1) -> "yxz"
+                permute("yxz", 2, 2) -> result: "yxz"
+            i=2: swap(1,2) -> "yzx"
+                permute("yzx", 2, 2) -> result: "yzx"
+            backtrack: swap(1,2) -> "yxz"
+    i=2: swap(0,2) -> "zyx"
+        permute("zyx", 1, 2)
+            i=1: swap(1,1) -> "zyx"
+                permute("zyx", 2, 2) -> result: "zyx"
+            i=2: swap(1,2) -> "zxy"
+                permute("zxy", 2, 2) -> result: "zxy"
+            backtrack: swap(1,2) -> "zyx"
+    backtrack: swap(0,2) -> "xyz"
+
+Final permutations: xyz, xzy, yxz, yzx, zyx, zxy
+
+Dry Run for "pqrs" (similarly generates all 24 = 4! permutations).
+*/
