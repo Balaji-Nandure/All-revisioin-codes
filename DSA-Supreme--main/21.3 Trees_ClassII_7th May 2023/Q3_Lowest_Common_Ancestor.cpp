@@ -1,130 +1,81 @@
 /*
-Approach Used:
----------------
-This is a recursive approach to find the Lowest Common Ancestor (LCA) of two nodes in a binary tree (not necessarily a BST).
-The idea is:
-- If the current node is NULL, return NULL.
-- If the current node matches either p or q, return that node.
-- Recursively search for p and q in the left and right subtrees.
-- If both left and right recursive calls return non-NULL, current node is the LCA.
-- If only one side returns non-NULL, propagate that result up.
+Problem:
+---------
+Find the Lowest Common Ancestor (LCA) of two nodes in a binary tree.
 
-Time Complexity: O(N), where N is the number of nodes in the tree.
-Space Complexity: O(H), where H is the height of the tree (due to recursion stack).
+Definition:
+------------
+The LCA of two nodes p and q in a binary tree is the
+lowest (deepest) node that has both p and q as descendants.
+A node can be a descendant of itself.
 
-Better/Alternative Approaches:
------------------------------
-1. **Parent Pointer + Hashing** (for multiple queries):
-   - Traverse the tree and store parent pointers for each node.
-   - For each query, store all ancestors of p in a set, then move up from q until you find a node in the set.
-   - Useful for multiple LCA queries, but requires extra space.
-   - Code Example:
-     ```
-     // Preprocessing
-     unordered_map<TreeNode*, TreeNode*> parent;
-     void dfs(TreeNode* node, TreeNode* par) {
-         if (!node) return;
-         parent[node] = par;
-         dfs(node->left, node);
-         dfs(node->right, node);
-     }
-     // Query
-     unordered_set<TreeNode*> ancestors;
-     while (p) { ancestors.insert(p); p = parent[p]; }
-     while (q) {
-         if (ancestors.count(q)) return q;
-         q = parent[q];
-     }
-     ```
+Approach:
+----------
+Use recursion:
+1. Base case:
+   - If root == nullptr → return nullptr
+   - If root == p or root == q → return root
+2. Recurse left and right:
+   - left = LCA(root->left, p, q)
+   - right = LCA(root->right, p, q)
+3. If both left and right are non-null → current node is LCA.
+4. Else return whichever is non-null.
 
-2. **Binary Lifting** (for static trees, many queries):
-   - Preprocess tree with binary lifting to answer LCA in O(logN) per query.
-   - More complex, used in competitive programming.
-
-3. **Iterative Approach** (using stack):
-   - Simulate recursion with stack, similar logic.
-
-Below is the improved code with detailed comments and a dry run at the end.
+Time Complexity: O(n)
+Space Complexity: O(h)  // recursion stack
 */
 
-class Solution {
-public:
-    // Function to find the Lowest Common Ancestor of two nodes in a binary tree
-    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
-        // Base case: if current node is NULL, return NULL (no ancestor found in this path)
-        if(root == NULL){
-            return NULL;
-        }
+#include <bits/stdc++.h>
+using namespace std;
 
-        // If current node matches p, we've found one of the nodes; return it up the call stack
-        if(root == p){
-            return p;
-        }
+struct TreeNode {
+    int val;
+    TreeNode *left, *right;
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+};
 
-        // If current node matches q, we've found one of the nodes; return it up the call stack
-        if(root == q){
-            return q;
-        }
+class Solution { // Solution class for LCA problem // Encapsulates the LCA function logic
+public: // Access specifier for member functions // Public so it can be accessed externally
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) { // Function signature for LCA // Finds LCA of nodes p and q in tree rooted at root
+        if (!root || root == p || root == q) // Check if root is null or matches p or q // Base case for recursion
+            return root; // Return root if one of the base conditions met // root can be an ancestor
 
-        // Recursively search for p and q in the left subtree
-        TreeNode* leftAns = lowestCommonAncestor(root->left, p, q);
+        TreeNode* left = lowestCommonAncestor(root->left, p, q); // Recursive call on left child // Looks for LCA in left subtree
+        TreeNode* right = lowestCommonAncestor(root->right, p, q); // Recursive call on right child // Looks for LCA in right subtree
 
-        // Recursively search for p and q in the right subtree
-        TreeNode* rightAns = lowestCommonAncestor(root->right, p, q);
-
-        // If both left and right recursive calls return non-NULL,
-        // it means p and q are found in different subtrees, so current node is their LCA
-        if(leftAns != NULL && rightAns != NULL){
-            return root;
-        }
-
-        // If only left subtree returns a non-NULL value, propagate it up (either p or q found in left subtree)
-        if(leftAns != NULL){
-            return leftAns;
-        }
-
-        // If only right subtree returns a non-NULL value, propagate it up (either p or q found in right subtree)
-        if(rightAns != NULL){
-            return rightAns;
-        }
-
-        // If neither subtree returns a non-NULL value, return NULL (neither p nor q found in this path)
-        return NULL;
+        if (left && right) return root; // If both left and right are non-null // p and q found in different subtrees, so root is LCA
+        return left ? left : right; // If only one side is non-null, return that // Propagate the found node (if any) up the recursion
     }
 };
 
-/*
-Dry Run Example:
-----------------
-Tree:
-        3
-       / \
-      5   1
-     / \ / \
-    6  2 0  8
-      / \
-     7   4
+int main() {
+    /*
+           3
+          / \
+         5   1
+        / \ / \
+       6  2 0  8
+         / \
+        7   4
 
-p = 5, q = 1
+    LCA(5, 1) = 3
+    LCA(6, 4) = 5
+    */
 
-Call Stack:
-lowestCommonAncestor(3, 5, 1)
-    - root != p or q
-    - leftAns = lowestCommonAncestor(5, 5, 1) -> returns 5 (root == p)
-    - rightAns = lowestCommonAncestor(1, 5, 1) -> returns 1 (root == q)
-    - Both leftAns and rightAns are non-NULL, so return root (3)
+    TreeNode* root = new TreeNode(3);
+    root->left = new TreeNode(5);
+    root->right = new TreeNode(1);
+    root->left->left = new TreeNode(6);
+    root->left->right = new TreeNode(2);
+    root->right->left = new TreeNode(0);
+    root->right->right = new TreeNode(8);
+    root->left->right->left = new TreeNode(7);
+    root->left->right->right = new TreeNode(4);
 
-Result: LCA is 3
+    Solution sol;
+    TreeNode* lca = sol.lowestCommonAncestor(root, root->left, root->right);
+    cout << "LCA(5, 1): " << lca->val << endl;
 
-Another Example:
-p = 5, q = 4
-
-lowestCommonAncestor(3, 5, 4)
-    - leftAns = lowestCommonAncestor(5, 5, 4)
-        - root == p, return 5
-    - rightAns = lowestCommonAncestor(1, 5, 4)
-        - search left/right, eventually finds 4 in left subtree of 2
-    - leftAns = 5, rightAns = NULL, so return leftAns (5)
-
-Result: LCA is 5
-*/
+    lca = sol.lowestCommonAncestor(root, root->left->left, root->left->right->right);
+    cout << "LCA(6, 4): " << lca->val << endl;
+}
