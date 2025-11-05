@@ -1,101 +1,80 @@
 /*
-    Gas Station Problem (Leetcode 134): 
-    Given two integer arrays gas and cost, where gas[i] is the amount of gas at station i, and cost[i] is the cost of gas to travel from station i to i+1.
-    The task is to find the starting gas station's index from which you can travel around the circuit once in the clockwise direction, otherwise return -1.
+Problem:
+---------
+You are given two arrays:
+- gas[i]   : amount of gas at station i
+- cost[i]  : amount of gas required to travel from station i to (i+1)
 
-    Approach Used in This Code (Greedy, O(N)):
-    - Traverse all stations, keep track of current balance (gas left after each station).
-    - If at any point balance goes negative, it means we cannot reach the next station from the current start.
-    - So, we set the next station as the new start and accumulate the deficit (shortage).
-    - At the end, if total gas (balance + deficit) >= 0, then the answer is the start index, else -1.
+Find the starting gas station index from which you can complete the circuit once.
+If it's not possible, return -1.
 
-    Why this works:
-    - If the total gas is less than total cost, it's impossible to complete the circuit.
-    - If we fail at station i, then any station between previous start and i cannot be the answer, so we skip them.
+Constraints:
+- You can start at any station.
+- You travel in a circular route.
 
-    Alternative Approaches:
-    1. Brute Force (O(N^2)): Try starting from every station and simulate the journey. (Inefficient for large N)
-    2. Prefix Sum: Not needed, as the greedy approach above is optimal.
+Approach:
+----------
+1. If total gas < total cost → impossible → return -1.
+2. Otherwise, one pass:
+   - Maintain `tank` (current fuel in tank).
+   - Traverse stations:
+        tank += gas[i] - cost[i]
+        if tank < 0:
+            → can't reach next station → reset start to i+1
+            → tank = 0
+3. The valid start index (if any) will be the answer.
 
-    // Brute Force Alternative (for reference):
-    /*
-    int bruteForce(vector<int>& gas, vector<int>& cost) {
-        int n = gas.size();
-        for(int start = 0; start < n; ++start) {
-            int tank = 0, cnt = 0, i = start;
-            while(cnt < n) {
-                tank += gas[i] - cost[i];
-                if(tank < 0) break;
-                i = (i + 1) % n;
-                cnt++;
-            }
-            if(cnt == n && tank >= 0) return start;
-        }
-        return -1;
-    }
-    */
-
-    // Dry Run Example:
-    // gas  = [1,2,3,4,5]
-    // cost = [3,4,5,1,2]
-    // i=0: balance = 1-3 = -2 < 0, start=1, deficit=2, balance=0
-    // i=1: balance = 0+2-4 = -2 < 0, start=2, deficit=4, balance=0
-    // i=2: balance = 0+3-5 = -2 < 0, start=3, deficit=6, balance=0
-    // i=3: balance = 0+4-1 = 3 >= 0
-    // i=4: balance = 3+5-2 = 6 >= 0
-    // At end: balance=6, deficit=6, so answer is start=3
-
+Time Complexity: O(n)
+Space Complexity: O(1)
 */
 
-#include<iostream>
-#include<vector>
+#include <bits/stdc++.h>
 using namespace std;
 
-// Function to find the starting gas station index
-int solve(vector<int>& gas, vector<int>& cost){
-    int deficit = 0; // Total shortage encountered when balance goes negative
-    int balance = 0; // Current petrol left in tank
-    int start = 0;   // Candidate starting index
+int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+    int n = gas.size();
+    int totalGas = 0, totalCost = 0;
+    int tank = 0, start = 0;
 
-    // Traverse all stations
-    for(int i = 0; i < gas.size(); i++){
-        balance += gas[i] - cost[i]; // Update balance after visiting station i
+    for (int i = 0; i < n; i++) {
+        totalGas += gas[i];
+        totalCost += cost[i];
+        tank += gas[i] - cost[i];
 
-        // If balance is negative, cannot reach next station from current start
-        if(balance < 0){
-            deficit += -balance; // Accumulate the shortage (deficit)
-            start = i + 1;       // Set next station as new start
-            balance = 0;         // Reset balance for new start
+        // If can't reach next station, reset start
+        if (tank < 0) {
+            start = i + 1;
+            tank = 0;
         }
     }
 
-    // If total gas (balance) is enough to cover total deficit, return start index
-    if(balance >= deficit){
-        return start;
-    }
-    // Otherwise, not possible to complete the circuit
-    return -1;
+    // If total gas is less than total cost → not possible
+    return (totalGas < totalCost) ? -1 : start;
 }
 
-int main(){
-    // Example input
-    vector<int> gas {1,2,3,4,5};
-    vector<int> cost {3,4,5,1,2};
+int main() {
+    vector<int> gas  = {1, 2, 3, 4, 5};
+    vector<int> cost = {3, 4, 5, 1, 2};
 
-    int ans = solve(gas, cost); // Find starting index
-    cout << "Starting index = " << ans << endl;
+    int start = canCompleteCircuit(gas, cost);
+
+    if (start != -1)
+        cout << "Start at station index: " << start << "\n";
+    else
+        cout << "No valid starting point.\n";
 
     /*
-        Dry Run:
-        gas  = [1,2,3,4,5]
-        cost = [3,4,5,1,2]
-        i=0: balance = 1-3 = -2 < 0, start=1, deficit=2, balance=0
-        i=1: balance = 0+2-4 = -2 < 0, start=2, deficit=4, balance=0
-        i=2: balance = 0+3-5 = -2 < 0, start=3, deficit=6, balance=0
-        i=3: balance = 0+4-1 = 3 >= 0
-        i=4: balance = 3+5-2 = 6 >= 0
-        At end: balance=6, deficit=6, so answer is start=3
-    */
+    Dry Run:
+    gas  = [1,2,3,4,5]
+    cost = [3,4,5,1,2]
 
-    return 0;
+    totalGas = 15, totalCost = 15 (✅ possible)
+    Traverse:
+     i=0: tank = -2 → can't continue → start=1, tank=0
+     i=1: tank = -2 → start=2
+     i=2: tank = -2 → start=3
+     i=3: tank = +3
+     i=4: tank = +6
+    ✅ start = 3
+    */
 }

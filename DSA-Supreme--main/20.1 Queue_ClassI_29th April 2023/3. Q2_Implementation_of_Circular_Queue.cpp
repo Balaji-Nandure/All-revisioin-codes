@@ -1,88 +1,115 @@
-// Approach: Implements a circular queue using a fixed-size array. Supports enqueue (push), dequeue (pop), and display. Uses modulo arithmetic to wrap indices.
+/*
+Circular Queue Implementation
+-----------------------------
+- Fixed-size array that behaves circularly.
+- Operations:
+    enqueue(x): insert element at rear
+    dequeue(): remove element from front
+    front(): access front element
+    rear(): access rear element
+    isEmpty(): check if empty
+    isFull(): check if full
+    size(): number of elements
 
-#include<iostream>
+Time Complexity: O(1) for all operations
+*/
+
+#include <bits/stdc++.h>
 using namespace std;
 
 class CircularQueue {
+private:
+    int *arr;
+    int frontIndex, rearIndex, count, capacity;
+
 public:
-    int size;   // size of circular queue
-    int *arr;   // pointer to integer array
-    int front;  // index of front element
-    int rear;   // index of rear element
-
-    CircularQueue(int n) {                  // initialize size, array, front and rear
-        size = n;
+    // Constructor
+    CircularQueue(int size) {
         arr = new int[size];
-        front = -1;                         // start as empty queue
-        rear = -1;                          // start as empty queue
+        capacity = size;
+        frontIndex = 0;
+        rearIndex = -1;
+        count = 0;
     }
 
-    void push(int data) {                   // insert new element at rear
-        if ((front == 0 && rear == size - 1) || (rear + 1) % size == front) {
-            cout << "Queue is full" << endl;    // if queue full, print message
+    // Destructor
+    ~CircularQueue() { delete[] arr; }
+
+    bool isEmpty() { return count == 0; }
+    bool isFull() { return count == capacity; }
+    int size() { return count; }
+
+    // Add element at rear
+    void enqueue(int val) {
+        if (isFull()) {
+            cout << "Queue is full! Cannot enqueue " << val << "\n";
             return;
         }
-        else if (front == -1) {                 // if empty queue
-            front = rear = 0;                   // first element at 0
-            arr[rear] = data;
-        }
-        else {
-            rear = (rear + 1) % size;           // advance rear using modulo
-            arr[rear] = data;
-        }
+        rearIndex = (rearIndex + 1) % capacity;
+        arr[rearIndex] = val;
+        count++;
     }
 
-    void pop() {                            // remove element from front
-        if (front == -1) {                      // empty case
-            cout << "Queue is empty" << endl;   // notify empty
+    // Remove element from front
+    void dequeue() {
+        if (isEmpty()) {
+            cout << "Queue is empty! Cannot dequeue.\n";
             return;
         }
-        else if (front == rear) {               // only one element
-            arr[front] = -1;
-            front = rear = -1;                  // reset to empty state
-        }
-        else {
-            arr[front] = -1;                    // remove front value
-            front = (front + 1) % size;         // move front forward
-        }
+        frontIndex = (frontIndex + 1) % capacity;
+        count--;
     }
 
-    void display() {                        // print current queue
-        if (front == -1) {                      // if empty, notify
-            cout << "Queue is empty" << endl;
-            return;
+    // Get front element
+    int front() {
+        if (isEmpty()) throw runtime_error("Queue is empty!");
+        return arr[frontIndex];
+    }
+
+    // Get rear element
+    int rear() {
+        if (isEmpty()) throw runtime_error("Queue is empty!");
+        return arr[rearIndex];
+    }
+
+    // Display elements
+    void print() {
+        cout << "Queue: ";
+        for (int i = 0; i < count; i++) {
+            cout << arr[(frontIndex + i) % capacity] << " ";
         }
-        cout << "Queue elements: ";
-        int i = front;                          // start from front
-        while (true) {
-            cout << arr[i] << " ";              // print element
-            if (i == rear)
-                break;
-            i = (i + 1) % size;                 // move to next position
-        }
-        cout << endl;
+        cout << "\n";
     }
 };
 
 int main() {
-    CircularQueue cq(5);                    // create a queue with size 5
-    cq.push(10);                            // enqueue 10
-    cq.push(20);                            // enqueue 20
-    cq.push(30);                            // enqueue 30
-    cq.push(40);                            // enqueue 40
-    cq.push(50);                            // enqueue 50
-    cq.push(60);                            // queue full, will print message
-    cq.display();                           // display current queue
+    CircularQueue q(5); // queue with capacity 5
 
-    cq.pop();                               // dequeue front
-    cq.display();                           // display updated queue
+    // Test enqueue
+    q.enqueue(10);
+    q.enqueue(20);
+    q.enqueue(30);
+    q.enqueue(40);
+    q.print();
 
-    cq.push(60);                            // enqueue 60 (should wrap)
-    cq.display();                           // display
+    // Test dequeue
+    q.dequeue();
+    q.dequeue();
+    q.print();
 
-    cq.pop();                               // dequeue
-    cq.pop();                               // dequeue
-    cq.display();                           // final display
+    // Add more elements
+    q.enqueue(50);
+    q.enqueue(60);
+    q.enqueue(70); // should show full when exceeding
+    q.print();
 
-    return 0;                               // exit program
+    cout << "Front: " << q.front() << ", Rear: " << q.rear() << "\n";
+    cout << "Size: " << q.size() << "\n";
+
+    // Empty the queue
+    while (!q.isEmpty()) {
+        cout << "Dequeuing: " << q.front() << "\n";
+        q.dequeue();
+    }
+    cout << "Queue empty? " << (q.isEmpty() ? "Yes" : "No") << "\n";
 }
