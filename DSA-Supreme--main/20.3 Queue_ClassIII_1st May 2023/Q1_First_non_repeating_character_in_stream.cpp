@@ -1,132 +1,69 @@
 /*
-Approach Used:
----------------
-We are given a stream of lowercase characters, and for each character added to the stream, we need to find the first non-repeating character in the stream so far. If there is no such character, we output '#'.
+Problem:
+---------
+Given a stream of lowercase characters (string s),
+for each character in the stream, find the first non-repeating character so far.
+If none exists, output '#' for that position.
 
-To solve this, we use:
-1. A frequency array (size 26 for 'a'-'z') to keep track of how many times each character has appeared.
-2. A queue to maintain the order of characters as they appear in the stream.
-3. For each character, we update its frequency and push it into the queue.
-4. We then check the front of the queue: if its frequency is more than 1, we pop it (since it's repeating). Otherwise, it's the first non-repeating character.
-5. If the queue becomes empty, it means there is no non-repeating character at this point, so we append '#'.
+Example:
+---------
+Input:  "aabc"
+Output: "a#bb"
 
-This approach ensures O(1) time for each character (since queue operations and array access are O(1)), and O(N) overall for a string of length N.
+Approach:
+----------
+1. Maintain:
+   - a frequency array (count of each character)
+   - a queue to store potential non-repeating characters.
+2. For each character:
+   - Increment its frequency.
+   - Push it into the queue.
+   - While the front of the queue has freq > 1 → pop it.
+   - If queue is empty → append '#', else append queue.front().
 
-Better Alternatives:
---------------------
-1. **Using Doubly Linked List + Hash Map**: For a more generic solution (e.g., for all ASCII or Unicode), we can use a doubly linked list to maintain the order of non-repeating characters and a hash map to store pointers to nodes. This allows O(1) insertion, deletion, and lookup.
-2. **Using Deque**: If we want to optimize for both ends, a deque can be used, but for this problem, a queue suffices.
-
-Alternative code using doubly linked list + hash map (for all ASCII):
----------------------------------------------------------------------
-/*
-#include <iostream>
-#include <unordered_map>
-#include <list>
-using namespace std;
-void solve(string& s) {
-    unordered_map<char, list<char>::iterator> charPos;
-    unordered_map<char, int> freq;
-    list<char> dll;
-    string ans = "";
-    for(char ch : s) {
-        freq[ch]++;
-        if(freq[ch] == 1) {
-            dll.push_back(ch);
-            charPos[ch] = --dll.end();
-        } else if(freq[ch] == 2) {
-            dll.erase(charPos[ch]);
-        }
-        if(!dll.empty()) ans += dll.front();
-        else ans += '#';
-    }
-    cout << ans;
-}
+Time: O(n)
+Space: O(1)
 */
 
-#include<iostream>
-#include<queue>
+#include <bits/stdc++.h>
 using namespace std;
 
-// Function to find first non-repeating character in a stream
-void solve(string& s){
-    // Frequency array to count occurrences of each character (assuming lowercase 'a'-'z')
-    int count[26] = {0};
+string firstNonRepeating(string s) {
+    vector<int> freq(26, 0); // Initialize frequency array // For 'a' to 'z' tracking
+    queue<char> q;            // Create character queue    // Stores potential candidates
+    string ans = "";          // Initialize result string // Will store output sequence
 
-    // Queue to store characters in the order they appear
-    queue<char> q;
+    for (char ch : s) {       // Process each character   // Iterate through input stream
+        freq[ch - 'a']++;     // Increment frequency      // Update count for current char
+        q.push(ch);           // Add to candidate queue   // Always push new character
 
-    // String to store the answer
-    string ans = "";
+        // Remove repeating chars from front // Clean up invalid candidates
+        while (!q.empty() && freq[q.front() - 'a'] > 1) // Check front validity // If repeating, remove
+            q.pop();          // Remove invalid front     // Pop until valid found
 
-    // Iterate over each character in the input string
-    for(int i = 0; i < s.length(); i++){
-        char ch = s[i]; // Current character from stream
-
-        count[ch - 'a']++; // Increment frequency of current character
-
-        q.push(ch); // Add current character to the queue
-
-        // Remove characters from the front of the queue if they are repeating
-        while(!q.empty()){
-            // If frequency of front character is more than 1, it's repeating, so remove it
-            if(count[q.front() - 'a'] > 1){
-                q.pop();
-            }
-            // If frequency is 1, it's the first non-repeating character
-            else{
-                ans.push_back(q.front());
-                break; // Stop as we found the first non-repeating character
-            }
-        }
-
-        // If queue is empty, there is no non-repeating character at this point
-        if(q.empty()){
-            ans.push_back('#');
-        }
+        // Check for non-repeating char // Determine output character
+        if (q.empty())        // If queue is empty        // No valid candidates left
+            ans.push_back('#'); // Add '#' marker         // Indicates no non-repeating
+        else                  // If valid candidate exists // Queue has non-repeating
+            ans.push_back(q.front()); // Add front char   // First non-repeating found
     }
 
-    // Output the result string
-    cout << ans;
+    return ans;               // Return final result      // Complete output sequence
 }
 
-int main(){
-    string s = "aabc"; // Example input stream
-    solve(s);
-    return 0;
+int main() {
+    string s = "aabc";
+    cout << "Stream: " << s << "\n";
+    cout << "First non-repeating sequence: " << firstNonRepeating(s) << "\n";
+
+    /*
+    Dry Run:
+    s = "aabc"
+
+    Step 1: 'a' → freq[a]=1 → queue=[a] → ans='a'
+    Step 2: 'a' → freq[a]=2 → pop 'a' → queue=[] → ans='a#'
+    Step 3: 'b' → freq[b]=1 → queue=[b] → ans='a#b'
+    Step 4: 'c' → freq[c]=1 → queue=[b,c] → ans='a#bb'
+    Output: "a#bb"
+    */
 }
-
-/*
-Dry Run:
---------
-Input: "aabc"
-
-Step-by-step:
-i=0, ch='a'
-- count['a'] = 1
-- queue: a
-- front 'a' freq=1 -> ans="a"
-
-i=1, ch='a'
-- count['a'] = 2
-- queue: a a
-- front 'a' freq=2 -> pop
-- queue: a
-- front 'a' freq=2 -> pop
-- queue: empty -> ans="a#"
-
-i=2, ch='b'
-- count['b'] = 1
-- queue: b
-- front 'b' freq=1 -> ans="a#b"
-
-i=3, ch='c'
-- count['c'] = 1
-- queue: b c
-- front 'b' freq=1 -> ans="a#bb"
-
-Final Output: a#bb
-
-Time Complexity: O(N), where N is the length of the string.
-Space Complexity: O(26) for count array + O(N) for queue in worst case.
-*/
