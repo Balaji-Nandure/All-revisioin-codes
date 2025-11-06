@@ -29,27 +29,43 @@ struct TreeNode {
 
 class Solution {
 public:
+    // Depth-first search to find all root-to-leaf paths with sum == targetSum
+    // path keeps the current nodes, ans saves results
     void dfs(TreeNode* root, int targetSum, vector<int>& path, vector<vector<int>>& ans) {
-        if (!root) return;
+        if (!root) return; // Base case: if node is null, nothing to do
 
-        path.push_back(root->val); // Choose
+        path.push_back(root->val); // Add current node to path
+                                  // This extends the temporary path for recursion
 
-        // Leaf node check
+        // Check if current node is a leaf (no children)
+        // Also check if the path sum matches targetSum exactly here
         if (!root->left && !root->right && targetSum == root->val)
-            ans.push_back(path);
+            ans.push_back(path); // Valid path found: store a copy in ans
+                                // Only push when both conditions met
 
-        // Explore children
+        // Recur left, subtract current node's value from sum
+        // Traverse left child for possible paths
         dfs(root->left, targetSum - root->val, path, ans);
+
+        // Recur right, again track reduced sum for path
+        // Traverse right child to explore all possibilities
         dfs(root->right, targetSum - root->val, path, ans);
 
-        path.pop_back(); // Backtrack
+        path.pop_back(); // Remove last node to backtrack
+                         // Ensures path is restored before next sibling call
     }
 
+    // Driver function: returns all root-to-leaf paths summing to targetSum
+    // Calls DFS and returns complete result
     vector<vector<int>> pathSum(TreeNode* root, int targetSum) {
-        vector<vector<int>> ans;
-        vector<int> path;
-        dfs(root, targetSum, path, ans);
-        return ans;
+        vector<vector<int>> ans; // Stores all valid paths
+                                // Final answer to return
+        vector<int> path;    // Current root-to-node path accumulator
+                             // Used during DFS
+        dfs(root, targetSum, path, ans); // Begin DFS from root
+                                         // Fills ans with all valid paths
+        return ans;          // Return all found paths to caller
+                            // Output as required
     }
 };
 
