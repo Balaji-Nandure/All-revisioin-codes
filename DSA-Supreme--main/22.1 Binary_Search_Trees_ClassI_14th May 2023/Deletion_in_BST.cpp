@@ -1,307 +1,162 @@
 /*
-    Approach Used:
-    ----------------
-    - This code implements a Binary Search Tree (BST) with insertion, level order traversal, and deletion operations.
-    - The deletion operation handles all three cases: deleting a leaf node, a node with one child, and a node with two children (using inorder predecessor).
-    - The code is modular, with separate functions for each operation.
+APPROACH: DELETE A NODE FROM BST
 
-    Better Alternatives:
-    --------------------
-    1. For deletion, instead of using the inorder predecessor (max in left subtree), we can also use the inorder successor (min in right subtree).
-    2. For insertion, an iterative approach can be used to avoid recursion stack overhead.
-    3. For level order traversal, we can use a vector of vectors to return the result instead of printing directly.
-    4. For deletion, we should free the memory of the deleted node to avoid memory leaks (especially in C++).
+We follow BST rules while deleting a node:
 
-    Alternative Deletion using Inorder Successor:
-    ---------------------------------------------
-    // int findMin(Node* root) {
-    //     Node* temp = root;
-    //     while (temp && temp->left != NULL) {
-    //         temp = temp->left;
-    //     }
-    //     return temp ? temp->data : -1;
-    // }
-    // Node* deleteNodeInBST(Node* root, int target) {
-    //     if (!root) return root;
-    //     if (root->data == target) {
-    //         if (!root->left && !root->right) {
-    //             delete root;
-    //             return NULL;
-    //         } else if (!root->left) {
-    //             Node* temp = root->right;
-    //             delete root;
-    //             return temp;
-    //         } else if (!root->right) {
-    //             Node* temp = root->left;
-    //             delete root;
-    //             return temp;
-    //         } else {
-    //             int inorderSucc = findMin(root->right);
-    //             root->data = inorderSucc;
-    //             root->right = deleteNodeInBST(root->right, inorderSucc);
-    //         }
-    //     } else if (root->data < target) {
-    //         root->right = deleteNodeInBST(root->right, target);
-    //     } else {
-    //         root->left = deleteNodeInBST(root->left, target);
-    //     }
-    //     return root;
-    // }
+Case 1: Node has NO CHILD (Leaf)
+    → Delete it, return NULL.
 
-    Dry Run Example:
-    -----------------
-    Input: 50 30 70 20 40 60 80 -1
-    Delete: 50
-    BST before deletion (level order):
-    50
-    30 70
-    20 40 60 80
+Case 2: Node has ONE CHILD
+    → Replace the node with its only child and delete the node.
 
-    After deleting 50 (root with two children, replaced by 40):
-    40
-    30 70
-    20 60 80
+Case 3: Node has TWO CHILDREN
+    → Find the INORDER SUCCESSOR (smallest node in right subtree),
+      copy its value into the current node,
+      and then delete the inorder successor.
 
-    Each step is explained in comments below.
+Steps:
+1) Search the value.
+2) Based on children count, apply one of the above cases.
+3) Return updated root.
 */
 
-#include <iostream>
-#include <queue>
-using namespace std;
+struct Node {
+    int data;
+    Node *left, *right;
 
-// Node class for BST
-class Node
-{
-public:
-    int data;       // Value of the node
-    Node *left;     // Pointer to left child
-    Node *right;    // Pointer to right child
-
-    // Constructor to initialize node with data
-    Node(int data)
-    {
-        this->data = data;
-        this->left = NULL;
-        this->right = NULL;
+    Node(int value) {
+        data = value;
+        left = right = nullptr;
     }
 };
 
-// Recursive function to insert a value into BST
-Node *insertIntoBST(Node *root, int data)
-{
-    // If tree is empty, create a new node and return as root
-    if (root == NULL)
-    {
-        root = new Node(data);
-        return root;
-    }
-    // If data is less than root, insert into left subtree
-    if (root->data > data)
-    {
-        root->left = insertIntoBST(root->left, data);
-    }
-    // If data is greater or equal, insert into right subtree
+// Insert a value into BST
+Node* insert(Node* root, int value) {
+    if (root == nullptr) 
+        return new Node(value);
+
+    if (value < root->data)
+        root->left = insert(root->left, value);
     else
-    {
-        root->right = insertIntoBST(root->right, data);
-    }
-    return root; // Return the unchanged root pointer
-}
+        root->right = insert(root->right, value);
 
-// Function to take input from user and build BST
-void takeInput(Node *&root)
-{
-    int data;
-    cin >> data;
-    // Keep reading until -1 is entered
-    while (data != -1)
-    {
-        root = insertIntoBST(root, data);
-        cin >> data;
-    }
-}
-
-// Function to print the BST level by level (BFS)
-void levelOrderTraversal(Node *root)
-{
-    // If tree is empty, nothing to print
-    if (root == NULL)
-    {
-        return;
-    }
-    queue<Node *> q; // Queue for BFS
-    q.push(root);    // Start with root
-    q.push(NULL);    // Level marker
-
-    while (!q.empty())
-    {
-        Node *temp = q.front();
-        q.pop();
-
-        if (temp == NULL)
-        {
-            // End of current level
-            cout << endl;
-            // If more nodes are present, add level marker for next level
-            if (!q.empty())
-            {
-                q.push(NULL);
-            }
-        }
-        else
-        {
-            cout << temp->data << " "; // Print current node
-
-            // If left child exists, add to queue
-            if (temp->left)
-            {
-                q.push(temp->left);
-            }
-            // If right child exists, add to queue
-            if (temp->right)
-            {
-                q.push(temp->right);
-            }
-        }
-    }
-}
-
-// Function to find a node with given target value in BST
-Node *findNode(Node *root, int target)
-{
-    // Base case: not found
-    if (root == NULL)
-        return NULL;
-    // If current node matches target, return it
-    if (root->data == target)
-        return root;
-    // If target is less, search in left subtree
-    else if (root->data > target)
-    {
-        return findNode(root->left, target);
-    }
-    // If target is greater, search in right subtree
-    else
-    {
-        return findNode(root->right, target);
-    }
-}
-
-// Function to find maximum value in a BST (rightmost node)
-int findMax(Node *root)
-{
-    Node *temp = root;
-    if (temp == NULL)
-        return -1; // Tree is empty
-    while (temp->right != NULL)
-    {
-        temp = temp->right;
-    }
-    return temp->data;
-}
-
-// Function to delete a node with given target value from BST
-Node *deleteNodeInBST(Node *root, int target)
-{
-    // Base case: tree is empty
-    if (root == NULL)
-    {
-        return root;
-    }
-
-    if (root->data == target)
-    {
-        // Case 1: Node is a leaf (no children)
-        if (root->left == NULL && root->right == NULL)
-        {
-            delete root; // Free memory
-            return NULL;
-        }
-        // Case 2: Node has only right child
-        else if (root->left == NULL && root->right != NULL)
-        {
-            Node *child = root->right;
-            delete root; // Free memory
-            return child;
-        }
-        // Case 3: Node has only left child
-        else if (root->left != NULL && root->right == NULL)
-        {
-            Node *child = root->left;
-            delete root; // Free memory
-            return child;
-        }
-        // Case 4: Node has two children
-        else
-        {
-            // Find inorder predecessor (max in left subtree)
-            int inorderPred = findMax(root->left);
-            root->data = inorderPred; // Replace data
-            // Recursively delete the predecessor node
-            root->left = deleteNodeInBST(root->left, inorderPred);
-            return root;
-        }
-    }
-    else if (root->data < target)
-    {
-        // Target is greater, search in right subtree
-        root->right = deleteNodeInBST(root->right, target);
-    }
-    else
-    {
-        // Target is smaller, search in left subtree
-        root->left = deleteNodeInBST(root->left, target);
-    }
     return root;
 }
 
-int main()
-{
-    Node *root = NULL;
-    cout << "Enter the data for Node (end with -1):" << endl;
-    takeInput(root); // Build BST from user input
+// Find minimum value node (used to find inorder successor)
+Node* findMin(Node* root) {
+    while (root->left != nullptr)
+        root = root->left;
+    return root;
+}
 
-    cout << "Enter value to delete: ";
-    int delVal;
-    cin >> delVal;
+// find maximum value node (used to find inorder predecessor)
+Node* findMax(Node* root) {
+    while (root->right != nullptr)
+        root = root->right;
+    return root;
+}
 
-    // Delete the node with value delVal
-    root = deleteNodeInBST(root, delVal);
+// Delete a node from BST
+Node* deleteNode(Node* root, int value) {
 
-    cout << "Level Order Traversal after deletion:" << endl;
-    levelOrderTraversal(root);
+    if (root == nullptr) 
+        return root;
+
+    // Search for node
+    if (value < root->data)
+        root->left = deleteNode(root->left, value);
+
+    else if (value > root->data)
+        root->right = deleteNode(root->right, value);
+
+    else {
+        // Node found
+
+        // Case 1: No child
+        if (root->left == nullptr && root->right == nullptr) {
+            delete root;
+            return nullptr;
+        }
+
+        // Case 2: One child
+        if (root->left == nullptr) {
+            Node* temp = root->right;
+            delete root;
+            return temp;
+        }
+        else if (root->right == nullptr) {
+            Node* temp = root->left;
+            delete root;
+            return temp;
+        }
+
+        // Case 3: Two children
+        Node* temp = findMin(root->right); // Inorder successor
+        root->data = temp->data;          // Copy value
+        root->right = deleteNode(root->right, temp->data); // Remove successor
+    }
+
+    return root;
+}
+
+// Inorder traversal to view BST
+void inorder(Node* root) {
+    if (root == nullptr) return;
+    inorder(root->left);
+    cout << root->data << " ";
+    inorder(root->right);
+}
+
+void preorder(Node* root) {
+    if (root == nullptr) return;
+    cout << root->data << " ";
+    preorder(root->left);
+    preorder(root->right);
+}
+
+void postorder(Node* root) {
+    if (root == nullptr) return;
+    postorder(root->left);
+    postorder(root->right);
+    cout << root->data << " ";
+}
+
+// findnodeinbst
+bool findNodeInBST(Node* root, int target) {
+    if (root == nullptr) return false;
+    if (root->data == target) return true;
+    if (target < root->data) return findNodeInBST(root->left, target);
+    return findNodeInBST(root->right, target);
+}
+
+
+// MAIN FUNCTION WITH TESTING
+int main() {
+
+    Node* root = nullptr;
+
+    // Build BST
+    root = insert(root, 50);
+    root = insert(root, 30);
+    root = insert(root, 70);
+    root = insert(root, 20);
+    root = insert(root, 40);
+    root = insert(root, 60);
+    root = insert(root, 80);
+
+    // Before deletion
+    // cout << "Inorder before deletion: ";
+    inorder(root);
+
+    // Delete examples
+    root = deleteNode(root, 20); // leaf node
+    root = deleteNode(root, 30); // one-child node
+    root = deleteNode(root, 50); // two-children case
+
+    // After deletion
+    // cout << "\nInorder after deletion: ";
+    inorder(root);
 
     return 0;
 }
-
-/*
-    Dry Run Example:
-    -----------------
-    Input: 50 30 70 20 40 60 80 -1
-    Delete: 50
-
-    BST before deletion (level order):
-    50
-    30 70
-    20 40 60 80
-
-    Deletion Steps:
-    - 50 has two children.
-    - Find inorder predecessor: max in left subtree (40).
-    - Replace 50 with 40.
-    - Delete 40 from left subtree.
-
-    BST after deletion:
-    40
-    30 70
-    20 60 80
-
-    Output:
-    Enter the data for Node (end with -1):
-    50 30 70 20 40 60 80 -1
-    Enter value to delete: 50
-    Level Order Traversal after deletion:
-    40 
-    30 70 
-    20 60 80 
-*/
