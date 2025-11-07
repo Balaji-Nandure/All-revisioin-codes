@@ -1,288 +1,87 @@
 /*
-    Approach Used:
-    --------------
-    1. Build a Binary Search Tree (BST) from a sorted inorder array using recursion.
-    2. Convert the BST into a sorted Doubly Linked List (DLL) in-place using reverse inorder traversal (right-root-left).
-    3. Print the BST in level order and the resulting DLL.
+APPROACH: CONVERT BST TO SORTED DOUBLY LINKED LIST (IN-PLACE)
 
-    Key Points:
-    - The DLL is created in-place by reusing the left and right pointers of the BST nodes.
-    - The head of the DLL is updated during traversal.
-    - The conversion is done in O(N) time and O(H) space (due to recursion stack), where N is the number of nodes and H is the height of the tree.
+Idea:
+- Inorder traversal of a BST visits nodes in ascending order.
+- While traversing, connect:
+    prev->right = curr    (next)
+    curr->left  = prev    (prev)
+- Keep track of:
+    - 'prev' : last processed node
+    - 'head' : first node (leftmost) ⇒ head of DLL
+- Reuse BST pointers:
+    left  → prev
+    right → next
 
-    Alternative Approaches:
-    ----------------------
-    1. **Iterative Inorder Traversal with Stack:**
-       - Use an explicit stack to perform inorder traversal and build the DLL iteratively.
-       - Avoids recursion stack, but uses an explicit stack.
+Why it works:
+- Inorder guarantees sorted order.
+- Linking during traversal builds a proper sorted DLL.
 
-       // Example code for iterative approach:
-       /*
-       void convertToDLLIterative(Node* root, Node*& head) {
-           stack<Node*> st;
-           Node* curr = root;
-           Node* prev = NULL;
-           while (curr || !st.empty()) {
-               while (curr) {
-                   st.push(curr);
-                   curr = curr->left;
-               }
-               curr = st.top(); st.pop();
-               if (!head) head = curr;
-               curr->left = prev;
-               if (prev) prev->right = curr;
-               prev = curr;
-               curr = curr->right;
-           }
-           if (prev) prev->right = NULL;
-       }
-       */
+Complexity:
+- Time:  O(n)  (visit each node once)
+- Space: O(h)  recursion stack (h = tree height)
 
-    2. **Morris Traversal (O(1) space):**
-       - Use Morris traversal to do inorder traversal without stack or recursion.
-       - More complex, but reduces space to O(1).
-
-       // Example code for Morris approach:
-       /*
-       void convertToDLLMorris(Node* root, Node*& head) {
-           Node* curr = root;
-           Node* prev = NULL;
-           while (curr) {
-               if (!curr->left) {
-                   if (!head) head = curr;
-                   curr->left = prev;
-                   if (prev) prev->right = curr;
-                   prev = curr;
-                   curr = curr->right;
-               } else {
-                   Node* pred = curr->left;
-                   while (pred->right && pred->right != curr)
-                       pred = pred->right;
-                   if (!pred->right) {
-                       pred->right = curr;
-                       curr = curr->left;
-                   } else {
-                       pred->right = NULL;
-                       if (!head) head = curr;
-                       curr->left = prev;
-                       if (prev) prev->right = curr;
-                       prev = curr;
-                       curr = curr->right;
-                   }
-               }
-           }
-           if (prev) prev->right = NULL;
-       }
-       */
-
-    Dry Run Example:
-    ----------------
-    Input inorder[] = {1,2,3,4,5,6,7,8,9}
-    BST constructed:
-            5
-          /   \
-         2     7
-        / \   / \
-       1   3 6   8
-            \     \
-             4     9
-
-    DLL after conversion: 1 <-> 2 <-> 3 <-> 4 <-> 5 <-> 6 <-> 7 <-> 8 <-> 9
-
-    Each node's left pointer points to previous node, right pointer to next node.
+Notes:
+- Returns the head of the doubly linked list.
+- Works in-place (no extra nodes).
 */
 
-#include<iostream>
-#include<queue>
-using namespace std;
-
-// Node class for BST and DLL
-class Node{
-    public:
-        int data;
-        Node* left;   // For BST: left child; For DLL: previous node
-        Node* right;  // For BST: right child; For DLL: next node
-        Node(int data){
-            this->data = data;
-            this->left = NULL;
-            this->right = NULL;
-        }
+struct Node {
+    int data;
+    Node *left;   // prev in DLL
+    Node *right;  // next in DLL
+    Node(int v) { data = v; left = right = nullptr; }
 };
 
-// Insert a node into BST (recursive)
-// Returns new root after insertion
-Node* insertIntoBST(Node* root,int data){
-    // If tree is empty, create new node as root
-    if(root == NULL){
-        root = new Node(data);
-        return root;
+void inorderLink(Node* cur, Node*& prev, Node*& head) {
+    if (!cur) return;
+
+    // Left subtree
+    inorderLink(cur->left, prev, head);
+
+    // Link prev <-> cur
+    if (prev == nullptr) {
+        head = cur;          // first (leftmost) node becomes head
+    } else {
+        prev->right = cur;   // prev -> next
+        cur->left  = prev;   // cur  -> prev
     }
-    // If data is less than root, insert into left subtree
-    if(root->data > data){
-        root->left = insertIntoBST(root->left,data);
-    }
-    else{
-        // If data is greater or equal, insert into right subtree
-        root->right = insertIntoBST(root->right,data);
-    }
+    prev = cur;              // advance prev
+
+    // Right subtree
+    inorderLink(cur->right, prev, head);
+}
+
+Node* bstToDoublyLinkedList(Node* root) {
+    Node* head = nullptr;
+    Node* prev = nullptr;
+    inorderLink(root, prev, head);
+    return head;
+}
+
+
+Node* insert(Node* root, int v) {
+    if (!root) return new Node(v);
+    if (v < root->data) root->left = insert(root->left, v);
+    else root->right = insert(root->right, v);
     return root;
 }
 
-// Take input from user and build BST until -1 is entered
-void takeInput(Node* &root){
-    int data;
-    cin>>data;
-    while(data != -1){
-        root = insertIntoBST(root,data);
-        cin>>data;
-    }
-}
+int main() {
+    // Build BST: 4,2,5,1,3
+    Node* root = nullptr;
+    int a[] = {4,2,5,1,3};
+    for (int x : a) root = insert(root, x);
 
-// Convert BST to Doubly Linked List (DLL) in-place using reverse inorder traversal
-// head: reference to head pointer of DLL
-void convertToDLL(Node* root,Node* &head){
-    // Base case: if root is NULL, do nothing
-    if(root == NULL){
-        return;
-    }
-    // First, convert right subtree to DLL (so that head points to smallest node at the end)
-    convertToDLL(root->right,head);
+    Node* head = bstToDoublyLinkedList(root);
 
-    // Attach current root node to the DLL
-    root->right = head; // right pointer acts as next in DLL
+    // Print forward
+    // for (Node* p = head; p; p = p->right) std::cout << p->data << " ";
 
-    // If DLL is not empty, set previous pointer of head to current root
-    if(head!=NULL)
-        head->left = root; // left pointer acts as previous in DLL
-
-    // Move head to current root (new head of DLL)
-    head = root;
-
-    // Convert left subtree to DLL
-    convertToDLL(root->left,head);
-}
-
-// Print BST in level order (BFS)
-void levelOrderTraversal(Node *root)
-{
-    // If tree is empty, return
-    if (root == NULL)
-    {
-        return;
-    }
-    queue<Node *> q;
-    q.push(root);      // Push root node
-    q.push(NULL);      // Level marker
-
-    while (!q.empty())
-    {
-        Node *temp = q.front();
-        q.pop();
-        if (temp == NULL)
-        {
-            // End of current level
-            cout << endl;
-            // If more nodes exist, add level marker for next level
-            if (!q.empty())
-            {
-                q.push(NULL);
-            }
-        }
-        else
-        {
-            cout << temp->data << " ";
-            // Push left child if exists
-            if (temp->left)
-            {
-                q.push(temp->left);
-            }
-            // Push right child if exists
-            if (temp->right)
-            {
-                q.push(temp->right);
-            }
-        }
-    }
-}
-
-// Build a balanced BST from sorted inorder array
-Node *bstUsingInorder(int inorder[],int s,int e){
-    // Base Case: if start > end, no elements to form tree
-    if(s>e){
-        return NULL;
-    }
-    // Find middle element to keep tree balanced
-    int mid = s + (e-s)/2;
-    int element = inorder[mid];
-    Node* root = new Node(element);
-
-    // Recursively build left and right subtrees
-    root->left = bstUsingInorder(inorder,s,mid-1);
-    root->right = bstUsingInorder(inorder,mid+1,e);
-    return root;
-}
-
-// Print the Doubly Linked List from head to end
-void printDLL(Node* head){
-    Node* temp = head;
-    while(temp!=NULL){
-        cout<<temp->data<<" ";
-        temp = temp->right; // Move to next node in DLL
-    }
-}
-
-int main(){
-    // Example input: sorted inorder array
-    int inorder[] = {1,2,3,4,5,6,7,8,9};
-    int s = 0;
-    int e = 8;
-
-    // Build balanced BST from inorder array
-    Node* root = bstUsingInorder(inorder,s,e);
-
-    // Print BST in level order
-    cout << "Level Order Traversal of BST:" << endl;
-    levelOrderTraversal(root);
-
-    // Convert BST to DLL
-    Node* head = NULL;
-    convertToDLL(root,head);
-
-    // Print the sorted Doubly Linked List
-    cout<<"Printing Sorted Doubly Linked List"<<endl;
-    printDLL(head);
+    // Print backward from tail
+    // Node* tail = head;
+    // while (tail && tail->right) tail = tail->right;
+    // for (Node* p = tail; p; p = p->left) std::cout << p->data << " ";
 
     return 0;
 }
-
-/*
-Dry Run:
---------
-Input: inorder[] = {1,2,3,4,5,6,7,8,9}
-
-Step 1: Build BST (balanced)
-        5
-      /   \
-     2     7
-    / \   / \
-   1   3 6   8
-        \     \
-         4     9
-
-Step 2: Convert BST to DLL (in-place, reverse inorder)
-- Start from rightmost node (9), set as head.
-- Move to 8, link 8<->9, update head to 8.
-- Continue to 7, link 7<->8, update head to 7.
-- ... and so on, until 1 is linked at the head.
-
-Final DLL: 1 <-> 2 <-> 3 <-> 4 <-> 5 <-> 6 <-> 7 <-> 8 <-> 9
-
-Output:
-Level Order Traversal of BST:
-5 
-2 7 
-1 3 6 8 
-4 9 
-Printing Sorted Doubly Linked List
-1 2 3 4 5 6 7 8 9 
-*/
