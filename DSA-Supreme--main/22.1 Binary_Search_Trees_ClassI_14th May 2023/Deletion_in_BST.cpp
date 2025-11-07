@@ -130,6 +130,28 @@ bool findNodeInBST(Node* root, int target) {
     return findNodeInBST(root->right, target);
 }
 
+// Find inorder predecessor (the largest node in the left subtree)
+Node* inorderPredecessor(Node* root, Node* node) {
+    if (node == nullptr || node->left == nullptr)
+        return nullptr; // No predecessor if node has no left subtree
+    Node* curr = node->left;
+    // Go as far right as possible in the left subtree
+    while (curr->right)
+        curr = curr->right;
+    return curr;
+}
+
+// Find inorder successor (the smallest node in the right subtree)
+Node* inorderSuccessor(Node* root, Node* node) {
+    if (node == nullptr || node->right == nullptr)
+        return nullptr; // No successor if node has no right subtree
+    Node* curr = node->right;
+    // Go as far left as possible in the right subtree
+    while (curr->left)
+        curr = curr->left;
+    return curr;
+}
+
 
 // MAIN FUNCTION WITH TESTING
 int main() {

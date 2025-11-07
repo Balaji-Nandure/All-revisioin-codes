@@ -1,115 +1,150 @@
-// https://leetcode.com/problems/validate-binary-search-tree/
-
 /*
-Approach Used:
----------------
-We use a recursive function to validate whether a binary tree is a Binary Search Tree (BST).
-The function checks if every node's value lies within a valid range (lower bound, upper bound).
-For the left child, the upper bound becomes the current node's value.
-For the right child, the lower bound becomes the current node's value.
-If all nodes satisfy the BST property, we return true; otherwise, false.
+APPROACH: VALIDATE IF A BINARY TREE IS A BST
 
-Time Complexity: O(N), where N is the number of nodes (each node is visited once).
-Space Complexity: O(H), where H is the height of the tree (due to recursion stack).
+A BST must satisfy for every node:
+    all keys in LEFT subtree  < node->data
+    all keys in RIGHT subtree > node->data
+(Strict inequality if duplicates are NOT allowed)
+
+Two standard methods:
+
+METHOD A — RANGE CHECK (MIN/MAX):  O(n) time, O(h) stack
+    - Carry a valid range [low, high] for each node.
+    - For current node x:
+        low < x->data < high
+      Recurse:
+        left  gets range [low, x->data)
+        right gets range (x->data, high]
+    - This directly enforces the BST rule at all depths.
+
+METHOD B — INORDER MONOTONIC:      O(n) time, O(h) stack
+    - Inorder traversal of a BST yields a strictly increasing sequence.
+    - Keep 'prev' pointer/value during inorder.
+    - If current <= prev at any step → NOT a BST.
+
+Notes:
+- If your BST allows duplicates:
+    - Decide a convention (e.g., all duplicates in RIGHT subtree).
+    - Then change strict comparisons accordingly.
 */
 
-class Solution {
-public:
-    // Helper function to validate BST by checking value bounds
-    bool solve(TreeNode* root, long long int lb, long long int ub) {
-        // Base case: An empty tree is a valid BST
-        if (root == nullptr) {
-            return true;
-        }
-        // Check if current node's value is within the valid range
-        if (root->val > lb && root->val < ub) {
-            // Recursively check left subtree with updated upper bound
-            bool leftAns = solve(root->left, lb, root->val);
-            // Recursively check right subtree with updated lower bound
-            bool rightAns = solve(root->right, root->val, ub);
-            // Both left and right subtrees must be valid BSTs
-            return leftAns && rightAns;
-        } else {
-            // Current node violates the BST property
-            return false;
-        }
-    }
+struct Node {
+    long long data;      // use long long to reduce overflow worries
+    Node *left, *right;
 
-    bool isValidBST(TreeNode* root) {
-        // Use long long min/max to avoid integer overflow for edge cases
-        long long int lowerbound = LLONG_MIN; // Use standard limits for clarity
-        long long int upperbound = LLONG_MAX;
-        // Start recursion with the full range of valid values
-        return solve(root, lowerbound, upperbound);
+    Node(long long v) {
+        data = v;
+        left = right = nullptr;
     }
 };
 
-/*
-Alternative Approach 1: Inorder Traversal (Iterative or Recursive)
-------------------------------------------------------------------
-A valid BST's inorder traversal yields a strictly increasing sequence.
-We can traverse the tree in inorder and check if each value is greater than the previous one.
+// -----------------------------
+// METHOD A: RANGE CHECK
+// -----------------------------
+bool isBSTRange(Node* root, long long low, long long high) {
+    // Empty subtree is valid
+    if (root == nullptr) return true;
 
-Code Example:
--------------
-bool isValidBST(TreeNode* root) {
-    stack<TreeNode*> st;
-    TreeNode* curr = root;
-    long long prev = LLONG_MIN;
-    while (curr || !st.empty()) {
-        while (curr) {
-            st.push(curr);
-            curr = curr->left;
-        }
-        curr = st.top(); st.pop();
-        if (curr->val <= prev) return false;
-        prev = curr->val;
-        curr = curr->right;
-    }
-    return true;
+    // Enforce strict inequality (no duplicates)
+    if (!(low < root->data && root->data < high)) return false;
+
+    // Left must be in (low, root->data)
+    // Right must be in (root->data, high)
+    return isBSTRange(root->left, low, root->data)
+        && isBSTRange(root->right, root->data, high);
 }
 
-Pros:
-- No need to manage explicit bounds.
-- Simple and intuitive.
+// Convenience wrapper
+bool isBST(Node* root) {
+    // Use wide sentinels to avoid integer edge issues
+    // For long long, use LLONG_MIN and LLONG_MAX from <climits>
+    // For int, use INT_MIN and INT_MAX from <climits>
+    const long long NEG_INF = LLONG_MIN;
+    const long long POS_INF = LLONG_MAX;
+    return isBSTRange(root, NEG_INF, POS_INF);
+}
 
-Cons:
-- Requires extra space for stack (O(H)).
+// -----------------------------
+// METHOD B: INORDER MONOTONIC
+// -----------------------------
+bool inorderCheck(Node* root, Node*& prev) {
+    if (root == nullptr) return true;
 
-Alternative Approach 2: Morris Inorder Traversal (O(1) Space)
--------------------------------------------------------------
-Same as above, but uses Morris Traversal to achieve O(1) space.
+    // Left
+    if (!inorderCheck(root->left, prev)) return false;
 
-Dry Run Example:
-----------------
-Consider the tree:
-      5
-     / \
-    1   7
-       / \
-      6   8
+    // Current must be strictly greater than prev->data
+    if (prev != nullptr && !(prev->data < root->data)) return false;
 
-Initial call: solve(5, -inf, +inf)
-- 5 in (-inf, +inf): true
-    -> solve(1, -inf, 5)
-        - 1 in (-inf, 5): true
-            -> solve(NULL, -inf, 1): true
-            -> solve(NULL, 1, 5): true
-        - leftAns && rightAns = true
-    -> solve(7, 5, +inf)
-        - 7 in (5, +inf): true
-            -> solve(6, 5, 7)
-                - 6 in (5, 7): true
-                    -> solve(NULL, 5, 6): true
-                    -> solve(NULL, 6, 7): true
-                - leftAns && rightAns = true
-            -> solve(8, 7, +inf)
-                - 8 in (7, +inf): true
-                    -> solve(NULL, 7, 8): true
-                    -> solve(NULL, 8, +inf): true
-                - leftAns && rightAns = true
-        - leftAns && rightAns = true
-- leftAns && rightAns = true
+    // Update prev
+    prev = root;
 
-Final result: true (valid BST)
+    // Right
+    return inorderCheck(root->right, prev);
+}
+
+bool isBSTInorder(Node* root) {
+    Node* prev = nullptr;
+    return inorderCheck(root, prev);
+}
+
+/*
+OPTIONAL TEST SNIPPET (uncomment prints if you add headers like <iostream>)
+
+Node* makeSample() {
+    // Valid BST:
+    //        8
+    //      /   \
+    //     3     10
+    //    / \      \
+    //   1   6      14
+    //      / \     /
+    //     4   7   13
+
+    Node* r = new Node(8);
+    r->left = new Node(3);
+    r->right = new Node(10);
+    r->left->left = new Node(1);
+    r->left->right = new Node(6);
+    r->left->right->left = new Node(4);
+    r->left->right->right = new Node(7);
+    r->right->right = new Node(14);
+    r->right->right->left = new Node(13);
+    return r;
+}
+
+Node* makeBad() {
+    // Not a BST because 12 is in the left subtree of 10
+    //       10
+    //      /  \
+    //     5   15
+    //    / \
+    //   2  12   <-- violates BST rule
+    Node* r = new Node(10);
+    r->left = new Node(5);
+    r->right = new Node(15);
+    r->left->left = new Node(2);
+    r->left->right = new Node(12);
+    return r;
+}
+
+int main() {
+    Node* good = makeSample();
+    Node* bad = makeBad();
+
+    // Using Method A
+    // std::cout << (isBST(good) ? "GOOD is BST\n" : "GOOD is NOT BST\n");
+    // std::cout << (isBST(bad)  ? "BAD is BST\n"  : "BAD is NOT BST\n");
+
+    // Using Method B
+    // std::cout << (isBSTInorder(good) ? "GOOD is BST\n" : "GOOD is NOT BST\n");
+    // std::cout << (isBSTInorder(bad)  ? "BAD is BST\n"  : "BAD is NOT BST\n");
+
+    return 0;
+}
 */
+
+// TIP:
+// - If you allow duplicates on the RIGHT, change comparisons to:
+//   Range method: (low <= root->data && root->data < high)
+//   Inorder method: prev->data <= root->data
